@@ -252,6 +252,12 @@ p { margin: 0 0 1em; color: var(--ink-soft); }
   z-index: 1;
 }
 
+/* Modifier: transparent / cutout images — no placeholder bg or gradient,
+   show the whole figure rather than cropping it */
+.ph.cutout { background: transparent; }
+.ph.cutout::before { display: none; }
+.ph.cutout img { object-fit: contain; }
+
 /* ----------- Sections ----------- */
 .section {
   padding: clamp(60px, 8vw, 110px) 0;
