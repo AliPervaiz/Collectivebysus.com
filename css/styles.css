@@ -236,6 +236,17 @@ p { margin: 0 0 1em; color: var(--ink-soft); }
 .ph.alt  { background: var(--placeholder-2); }
 .ph.blue { background: var(--blue-soft); color: var(--blue-deep); }
 
+/* Real images inside a placeholder fill the container */
+.ph img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  z-index: 1;
+}
+
 /* ----------- Sections ----------- */
 .section {
   padding: clamp(60px, 8vw, 110px) 0;
