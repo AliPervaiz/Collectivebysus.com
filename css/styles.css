@@ -207,8 +207,13 @@ p { margin: 0 0 1em; color: var(--ink-soft); }
 }
 .hero-image {
   aspect-ratio: 4 / 5;
-  background: var(--placeholder);
   position: relative;
+}
+.hero-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 /* ----------- Placeholder image styling ----------- */
