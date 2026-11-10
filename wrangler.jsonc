@@ -1,14 +1,50 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "weathered-smoke-8418",
+  "main": "src/worker.js",
   "compatibility_date": "2026-05-20",
+  "compatibility_flags": ["nodejs_compat"],
   "observability": {
     "enabled": true
   },
   "assets": {
-    "directory": "."
+    "directory": ".",
+    "binding": "ASSETS",
+    // These paths go through the worker first (auth, private galleries).
+    "run_worker_first": ["/admin", "/admin/*", "/api/*", "/g/*"]
   },
-  "compatibility_flags": [
-    "nodejs_compat"
-  ]
+
+  // Resized client-gallery images.
+  "r2_buckets": [
+    { "binding": "PHOTOS", "bucket_name": "collectivebysus-galleries" }
+  ],
+
+  // Galleries + favorites. Create with: npx wrangler d1 create collectivebysus-galleries
+  // then paste the database_id it prints below.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "collectivebysus-galleries",
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  "vars": {
+    // From Cloudflare Zero Trust > Settings > Custom Pages (team domain)
+    // and the Access application's "Application Audience (AUD) Tag".
+    "ACCESS_TEAM_DOMAIN": "REPLACE_ME.cloudflareaccess.com",
+    "ACCESS_AUD": "REPLACE_WITH_ACCESS_AUD_TAG",
+    // Optional extra allowlist on top of the Access policy.
+    "ADMIN_EMAILS": "",
+    "NOTIFY_FROM": "galleries@collectivebysus.com",
+    "NOTIFY_TO": "contact@collectivebysus.com"
+  }
+
+  // Optional: email Susi when a client submits favorites. Requires Cloudflare
+  // Email Routing to be enabled on collectivebysus.com with NOTIFY_TO verified
+  // as a destination address. Then uncomment:
+  // ,"send_email": [
+  //   { "name": "NOTIFY", "destination_address": "contact@collectivebysus.com" }
+  // ]
 }

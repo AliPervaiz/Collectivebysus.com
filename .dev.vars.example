@@ -1,0 +1,3 @@
+# Copy to .dev.vars for local development (never committed).
+DEV_ADMIN_BYPASS=true
+SESSION_SECRET=local-dev-secret-change-me
