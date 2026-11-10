@@ -494,3 +494,14 @@ p { margin: 0 0 1em; color: var(--ink-soft); }
   to   { opacity: 1; transform: none; }
 }
 .fade-up { animation: fadeUp 0.7s ease both; }
+
+/* ----------- Booking (Cal.com embed) ----------- */
+.booking .section-head p { max-width: 600px; margin-left: auto; margin-right: auto; }
+.booking-embed {
+  max-width: 1040px;
+  margin: 0 auto;
+  min-height: 640px;
+  background: #fff;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}

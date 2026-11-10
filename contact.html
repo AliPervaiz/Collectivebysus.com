@@ -33,7 +33,7 @@
   <header class="page-header">
     <span class="eyebrow">Say Hello</span>
     <h1>Let's connect.</h1>
-    <p>I'd love to hear about what you're planning. Drop a note any of the ways below.</p>
+    <p>I'd love to hear about what you're planning. <a href="#book">Book a time</a> directly, or drop a note any of the ways below.</p>
     <div class="accent-line"></div>
   </header>
 
@@ -76,6 +76,20 @@
     </div>
   </section>
 
+  <section class="section alt booking" id="book">
+    <div class="container">
+      <div class="section-head" style="text-align:center;">
+        <span class="eyebrow">Book a Session</span>
+        <h2>Pick a time that works for you.</h2>
+        <p>Choose how many hours you'd like, then a date and time. You'll get a confirmation by email, and I'll follow up to plan the details.</p>
+      </div>
+      <div id="cal-booking" class="booking-embed"></div>
+      <noscript>
+        <p style="text-align:center;">Booking needs JavaScript. Please email <a href="mailto:contact@collectivebysus.com">contact@collectivebysus.com</a> instead.</p>
+      </noscript>
+    </div>
+  </section>
+
   <section class="cta">
     <div class="container">
       <h2>Looking forward to hearing from you.</h2>
@@ -115,6 +129,28 @@
       </div>
     </div>
   </footer>
+
+  <!-- Cal.com booking embed. Set CAL_LINK to "<cal-username>/<event-slug>". -->
+  <script>
+    (function () {
+      var CAL_LINK = "collectivebysus/session";
+
+      (function (C, A, L) { var p = function (a, ar) { a.q.push(ar); }; var d = C.document; C.Cal = C.Cal || function () { var cal = C.Cal; var ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { var api = function () { p(api, arguments); }; var namespace = ar[1]; api.q = api.q || []; if (typeof namespace === "string") { cal.ns[namespace] = cal.ns[namespace] || api; p(cal.ns[namespace], ar); p(cal, ["initNamespace", namespace]); } else p(cal, ar); return; } p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
+
+      Cal("init", "booking", { origin: "https://cal.com" });
+      Cal.ns.booking("inline", {
+        elementOrSelector: "#cal-booking",
+        calLink: CAL_LINK,
+        config: { layout: "month_view", theme: "light" }
+      });
+      Cal.ns.booking("ui", {
+        theme: "light",
+        cssVarsPerTheme: { light: { "cal-brand": "#4a6a85" } },
+        hideEventTypeDetails: false,
+        layout: "month_view"
+      });
+    })();
+  </script>
 
 </body>
 </html>
