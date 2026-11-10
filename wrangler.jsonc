@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "weathered-smoke-8418",
+  "name": "collectivebysus",
   "main": "src/worker.js",
   "compatibility_date": "2026-05-20",
   "compatibility_flags": ["nodejs_compat"],
@@ -25,7 +25,7 @@
     {
       "binding": "DB",
       "database_name": "collectivebysus-galleries",
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "database_id": "b7406895-a8dc-4f9f-a677-62322f01cfde",
       "migrations_dir": "migrations"
     }
   ],
