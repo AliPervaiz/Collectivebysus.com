@@ -38,13 +38,15 @@
     // Optional extra allowlist on top of the Access policy.
     "ADMIN_EMAILS": "",
     "NOTIFY_FROM": "galleries@collectivebysus.com",
-    "NOTIFY_TO": "contact@collectivebysus.com"
-  }
+    // Must be a *verified destination* in Email Routing (not the contact@ alias,
+    // which itself forwards here).
+    "NOTIFY_TO": "collectivebysus@gmail.com"
+  },
 
-  // Optional: email Susi when a client submits favorites. Requires Cloudflare
-  // Email Routing to be enabled on collectivebysus.com with NOTIFY_TO verified
-  // as a destination address. Then uncomment:
-  // ,"send_email": [
-  //   { "name": "NOTIFY", "destination_address": "contact@collectivebysus.com" }
-  // ]
+  // Emails Susi when a client submits gallery favorites. Email Routing is enabled
+  // on collectivebysus.com (contact@ forwards to collectivebysus@gmail.com), and
+  // this binding can only deliver to that verified address.
+  "send_email": [
+    { "name": "NOTIFY", "destination_address": "collectivebysus@gmail.com" }
+  ]
 }
