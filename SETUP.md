@@ -58,7 +58,7 @@ Run these from the project folder after `npm install` and `npx wrangler login`.
    (1h / 2h / 3h / 4h) so clients pick how many hours they want.
    Add booking questions (session type, location, number of people).
    Optional: "Requires confirmation" so she approves each request, or a Stripe deposit.
-3. Set `CAL_LINK` in `contact.html` to `<username>/<event-slug>`.
+3. Set `CAL_LINK` in `contact.html` to `<username>/<event-slug>`. While it is empty (the default), the booking section stays hidden.
 
 ## Local development
 
