@@ -33,8 +33,8 @@
   "vars": {
     // From Cloudflare Zero Trust > Settings > Custom Pages (team domain)
     // and the Access application's "Application Audience (AUD) Tag".
-    "ACCESS_TEAM_DOMAIN": "REPLACE_ME.cloudflareaccess.com",
-    "ACCESS_AUD": "REPLACE_WITH_ACCESS_AUD_TAG",
+    "ACCESS_TEAM_DOMAIN": "aged-sun-d138.cloudflareaccess.com",
+    "ACCESS_AUD": "7f9320ef5c512dcb2aa8e840ca6f26ef433d5e8a4b4422b38510cf7a6cd9d550",
     // Optional extra allowlist on top of the Access policy.
     "ADMIN_EMAILS": "",
     "NOTIFY_FROM": "galleries@collectivebysus.com",
