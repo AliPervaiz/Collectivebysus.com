@@ -1,0 +1,15 @@
+# Never serve these as public static files
+.git
+.gitignore
+.assetsignore
+.wrangler
+.dev.vars*
+.DS_Store
+node_modules
+src
+migrations
+wrangler.jsonc
+package.json
+package-lock.json
+README.md
+SETUP.md
