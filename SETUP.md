@@ -32,10 +32,12 @@ Run these from the project folder after `npm install` and `npx wrangler login`.
    - The worker verifies the Access token itself, so if Access is misconfigured
      the admin is locked rather than open.
 
-5. **(Optional) Email Susi when a client submits**
-   - Enable Email Routing on collectivebysus.com and verify `contact@collectivebysus.com`
-     as a destination address.
-   - Uncomment the `send_email` block in `wrangler.jsonc`.
+5. **Email alerts when a client submits favorites** (set up 2026-11-16)
+   - Email Routing is already on for collectivebysus.com: `contact@` forwards to
+     `collectivebysus@gmail.com` (a verified destination).
+   - The `send_email` binding in `wrangler.jsonc` sends alerts from
+     `galleries@collectivebysus.com` to that Gmail address. It can only send to verified
+     destinations, so to change the recipient, verify the new address in Email Routing first.
 
 6. Deploy: `npm run deploy` (or merge to main if Git deploys are set up).
 
