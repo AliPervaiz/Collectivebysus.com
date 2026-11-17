@@ -117,6 +117,7 @@ export function openModal({ title, submitLabel = "Save", children = [], onSubmit
   const err = el("p", { class: "form-error", role: "alert" });
   const submit = el("button", { class: "btn solid", type: "submit" }, submitLabel);
   const form = el("form", { class: "modal-card" + (wide ? " wide" : ""), onsubmit: handle },
+    modalCloseButton(() => close()),
     el("h3", {}, title),
     ...children,
     err,
@@ -145,6 +146,11 @@ export function openModal({ title, submitLabel = "Save", children = [], onSubmit
     }
   }
   return { modal, form, err, submit, close };
+}
+
+/** The × in the top-right corner of every modal. */
+export function modalCloseButton(onClose) {
+  return el("button", { class: "modal-x", type: "button", "aria-label": "Close", title: "Close", onclick: onClose }, "×");
 }
 
 export const field = (label, input, hint) =>

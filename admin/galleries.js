@@ -1,7 +1,7 @@
 /* Gallery manager: list, detail, create/edit form, uploads. */
 
 import {
-  el, api, toast, copy, fmtDate, startView, errorView, select, postingBadge, minorBadge, label, TYPE_LABELS, todayLocal,
+  el, api, toast, copy, modalCloseButton, fmtDate, startView, errorView, select, postingBadge, minorBadge, label, TYPE_LABELS, todayLocal,
 } from "./lib.js";
 
 const FULL_EDGE = 2560;   // long edge of the client-facing image
@@ -123,6 +123,7 @@ export function openGalleryForm(existing, preset = {}) {
   const submit = el("button", { class: "btn solid", type: "submit" }, existing ? "Save Changes" : "Create Gallery");
 
   const form = el("form", { class: "modal-card", onsubmit: onSubmit },
+    modalCloseButton(() => closeModal()),
     el("h3", {}, existing ? "Gallery settings" : "New gallery"),
     el("label", { class: "field" }, el("span", {}, "Title *"), f.title),
     el("div", { class: "field-row" },
@@ -144,11 +145,14 @@ export function openGalleryForm(existing, preset = {}) {
     el("label", { class: "check" }, f.allow_downloads, "Let the client download photos"),
     err,
     el("div", { class: "modal-actions" },
-      el("button", { class: "btn", type: "button", onclick: () => modal.remove() }, "Cancel"),
+      el("button", { class: "btn", type: "button", onclick: () => closeModal() }, "Cancel"),
       submit
     )
   );
-  const modal = el("div", { class: "modal", onclick: (e) => { if (e.target === modal) modal.remove(); } }, form);
+  const modal = el("div", { class: "modal", onclick: (e) => { if (e.target === modal) closeModal(); } }, form);
+  const onKey = (e) => { if (e.key === "Escape") closeModal(); };
+  function closeModal() { modal.remove(); document.removeEventListener("keydown", onKey); }
+  document.addEventListener("keydown", onKey);
   document.body.append(modal);
   f.title.focus();
 
