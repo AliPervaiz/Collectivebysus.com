@@ -275,6 +275,7 @@
     document.getElementById("submitNote").focus();
   });
   document.getElementById("submitCancel").addEventListener("click", () => { modal.hidden = true; });
+  document.getElementById("submitClose").addEventListener("click", () => { modal.hidden = true; });
   modal.addEventListener("click", (e) => { if (e.target === modal) modal.hidden = true; });
   document.getElementById("submitConfirm").addEventListener("click", async (e) => {
     const btn = e.currentTarget;
