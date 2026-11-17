@@ -104,8 +104,13 @@ jsn() { node -e "$1" "${@:2}"; }
 expect "public availability" 200 "$B/api/public/availability"
 has "open days listed" '"open_days"'
 cp "$TMP/body" "$TMP/avail"
-D1=$(jsn 'const d=JSON.parse(require("fs").readFileSync(process.argv[1]));process.stdout.write(d.open_days[0]||"")' "$TMP/avail")
-D2=$(jsn 'const d=JSON.parse(require("fs").readFileSync(process.argv[1]));process.stdout.write(d.open_days[1]||"")' "$TMP/avail")
+# Use open days with no bookings yet, so real data on the server can't skew the counts.
+FIRST=$(jsn 'const d=JSON.parse(require("fs").readFileSync(process.argv[1]));process.stdout.write(d.first)' "$TMP/avail")
+TO=$(jsn 'const d=new Date(process.argv[1]+"T12:00:00Z");d.setUTCDate(d.getUTCDate()+60);process.stdout.write(d.toISOString().slice(0,10))' "$FIRST")
+curl -s "$B/api/admin/availability?from=$FIRST&to=$TO" > "$TMP/adminavail"
+EMPTY=$(jsn 'const d=JSON.parse(require("fs").readFileSync(process.argv[1]));process.stdout.write(Object.entries(d.days).filter(([k,v])=>v.open&&v.count===0&&!v.requests).map(([k])=>k).sort().slice(0,2).join(" "))' "$TMP/adminavail")
+D1=$(echo $EMPTY | cut -d' ' -f1)
+D2=$(echo $EMPTY | cut -d' ' -f2)
 [ -n "$D1" ] && [ -n "$D2" ] && ok "has open days ($D1, $D2)" || bad "has open days" "none"
 WEEKDAYS=$(jsn 'const d=JSON.parse(require("fs").readFileSync(process.argv[1]));process.stdout.write(String(d.open_days.filter(x=>![0,6].includes(new Date(x+"T12:00:00Z").getUTCDay())).length))' "$TMP/avail")
 [ "$WEEKDAYS" = 0 ] && ok "only weekends are open by default" || bad "only weekends open" "$WEEKDAYS weekday(s) open"

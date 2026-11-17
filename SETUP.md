@@ -4,14 +4,14 @@ The public site is static HTML. One Cloudflare Worker (`collectivebysus`) also r
 
 | Path | What |
 |---|---|
-| `/contact#inquire`, `/inquire` | Inquiry form with a **day picker** (clients tap weekend days they're open to). `/inquire` is the Instagram-bio link. |
+| `/contact` | Inquiry form first, with a **day picker** (clients tap weekend days they're open to). Use `collectivebysus.com/contact` as the Instagram-bio link; old `/inquire` links redirect here. |
 | `/privacy` | Privacy policy (linked from every footer and under the form). |
 | `/g/<link>` | Private client galleries (favorites, PIN, downloads). |
 | `/admin` | Susi's studio admin: Dashboard, Clients, Calendar, Sessions, Galleries, Settings. Behind Cloudflare Access. |
 
 Code is shared with the Fieldnote Studio template (`../fieldnote-studio`). Brand values live
 in `src/lib/brand.js`, `js/site-config.js`, the `:root` tokens in `css/styles.css`, and the
-page frames (`inquire.html`, `privacy.html`, `gallery.html`, `admin/index.html`).
+page frames (`contact.html`, `privacy.html`, `gallery.html`, `admin/index.html`).
 
 ## How Susi uses it
 1. **New inquiry** → email alert to collectivebysus@gmail.com, and it shows on the Dashboard
