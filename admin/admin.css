@@ -602,6 +602,7 @@ a.att-main:hover { color: var(--ink); background: color-mix(in srgb, var(--prima
 .cal-day.is-past { cursor: default; }
 .cal-day.is-past:hover { background: inherit; }
 .cal-day.is-past .cal-num { color: var(--muted); }
+.cal-day.is-past:not(.out):not(.is-off) { background: color-mix(in srgb, var(--line) 22%, var(--bg)); }
 .cal-num { font-size: 0.82rem; font-variant-numeric: tabular-nums; color: var(--ink); width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; }
 .cal-day.is-today .cal-num { background: var(--primary); color: var(--on-primary); font-weight: 500; }
 .cal-evs { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
