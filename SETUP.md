@@ -1,77 +1,49 @@
-# Client Galleries & Booking — Setup
+# Collective by Sus: site + studio admin
 
-## One-time Cloudflare setup
+The public site is static HTML. One Cloudflare Worker (`collectivebysus`) also runs:
 
-Run these from the project folder after `npm install` and `npx wrangler login`.
+| Path | What |
+|---|---|
+| `/contact#inquire`, `/inquire` | Inquiry form with a **day picker** (clients tap weekend days they're open to). `/inquire` is the Instagram-bio link. |
+| `/privacy` | Privacy policy (linked from every footer and under the form). |
+| `/g/<link>` | Private client galleries (favorites, PIN, downloads). |
+| `/admin` | Susi's studio admin: Dashboard, Clients, Calendar, Sessions, Galleries, Settings. Behind Cloudflare Access. |
 
-1. **Create the photo bucket**
-   ```sh
-   npx wrangler r2 bucket create collectivebysus-galleries
-   ```
+Code is shared with the Fieldnote Studio template (`../fieldnote-studio`). Brand values live
+in `src/lib/brand.js`, `js/site-config.js`, the `:root` tokens in `css/styles.css`, and the
+page frames (`inquire.html`, `privacy.html`, `gallery.html`, `admin/index.html`).
 
-2. **Create the database** and paste the printed `database_id` into `wrangler.jsonc`
-   ```sh
-   npx wrangler d1 create collectivebysus-galleries
-   npm run db:migrate
-   ```
+## How Susi uses it
+1. **New inquiry** → email alert to collectivebysus@gmail.com, and it shows on the Dashboard
+   under "needs attention". It shows the days the client picked and any timing notes.
+2. Reply by DM/email, then **Mark replied** (pick how you replied with the pencil).
+3. When a date is agreed, **Start session** from the inquiry (or + Session) and set it to **Booked**.
+   Booked sessions fill that day; at 3 the day disappears from the public picker.
+4. **Calendar**: tap an upcoming day to add a session, **block** it (vacation, family), or
+   **open** a weekday as a one-off. "Asks" = open inquiries that picked that day.
+5. After the shoot: create the **gallery** from the session, send the link. When the client
+   sends favorites you get an email and the session moves to **Editing**.
+6. Log payments (Venmo/Zelle/cash) on the session; balances owed show on the Dashboard.
+7. **Settings → Availability**: shoot days (Sat/Sun), shoots per day (3), days a client can
+   pick (5), how far ahead (90 days).
 
-3. **Set the cookie-signing secret** (any long random string)
-   ```sh
-   openssl rand -base64 32 | npx wrangler secret put SESSION_SECRET
-   ```
+## Config (wrangler.jsonc)
+- D1 `collectivebysus-galleries` (migrations 0001–0003), R2 `collectivebysus-galleries`.
+- Access: team `aged-sun-d138.cloudflareaccess.com`, AUD in `ACCESS_AUD`; app covers
+  `/admin` and `/api/admin`. The worker also verifies the Access JWT.
+- Email: `send_email` binding → collectivebysus@gmail.com (verified Email Routing destination),
+  from `studio@collectivebysus.com`. Client auto-replies are off (need `RESEND_API_KEY` +
+  `CLIENT_EMAIL_FROM`).
+- Secrets: `SESSION_SECRET` (set). Set secrets with `wrangler secret put` right after a production
+  deploy, then confirm with `wrangler secret list`.
+- Optional: `TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET` (spam check), `CAL_WEBHOOK_SECRET` (unused).
 
-4. **Protect `/admin` with Cloudflare Access** (free, up to 50 users)
-   - Dashboard → Zero Trust → Access → Applications → Add → Self-hosted.
-   - Domain: `collectivebysus.com`, paths `admin` **and** `api/admin`.
-     (If the workers.dev URL is still enabled, add it too, or turn it off.)
-   - Policy: Allow → Emails → Susi's email (and yours).
-   - Login method: One-time PIN (email code) or Google.
-   - Copy the **Application Audience (AUD) Tag** into `ACCESS_AUD` in `wrangler.jsonc`,
-     and your team domain (`<team>.cloudflareaccess.com`, from Zero Trust → Settings)
-     into `ACCESS_TEAM_DOMAIN`.
-   - The worker verifies the Access token itself, so if Access is misconfigured
-     the admin is locked rather than open.
+## Deploying
+Merging to `main` deploys via Cloudflare Workers Builds. New migrations must be applied first:
+`npm run db:migrate` (remote). Migrations are additive.
 
-5. **Email alerts when a client submits favorites** (set up 2026-11-16)
-   - Email Routing is already on for collectivebysus.com: `contact@` forwards to
-     `collectivebysus@gmail.com` (a verified destination).
-   - The `send_email` binding in `wrangler.jsonc` sends alerts from
-     `galleries@collectivebysus.com` to that Gmail address. It can only send to verified
-     destinations, so to change the recipient, verify the new address in Email Routing first.
-
-6. Deploy: `npm run deploy` (or merge to main if Git deploys are set up).
-
-## Using it (for Susi)
-
-1. Go to **collectivebysus.com/admin** and sign in.
-2. **New Gallery**: add a title, client name, and optionally a PIN, selection limit, expiry date, or downloads.
-3. Drag in the edited JPEGs. They're resized in the browser (2560px long edge), so
-   uploads are quick and originals never leave her computer. Keep the tab open until it says done.
-   Re-dropping the same files skips ones already uploaded.
-4. **Copy** the link and send it to the client (with the PIN, if set).
-5. The client hearts photos and hits "Send my selections". The gallery shows the picks and the client's note.
-6. **Copy for Lightroom**, then in Lightroom: Library → Filter bar → Text → Filename → Contains → paste.
-
-## Booking (Cal.com)
-
-1. Sign up at cal.com and connect Google Calendar (Settings → Calendars).
-   Set availability and buffer time between sessions.
-2. Create an event type (e.g. "Photo Session") and turn on **multiple durations**
-   (1h / 2h / 3h / 4h) so clients pick how many hours they want.
-   Add booking questions (session type, location, number of people).
-   Optional: "Requires confirmation" so she approves each request, or a Stripe deposit.
-3. Set `CAL_LINK` in `contact.html` to `<username>/<event-slug>`. While it is empty (the default), the booking section stays hidden.
-
-## Local development
-
+## Local
 ```sh
-cp .dev.vars.example .dev.vars   # skips Access on localhost only
-npm run db:migrate:local
-npm run dev                      # http://localhost:8787/admin/
+cp .dev.vars.example .dev.vars && npm install && npm run db:migrate:local && npm run dev
+npm run test:smoke   # with the dev server running on :8787
 ```
-
-## Costs
-
-R2 includes 10 GB of free storage and free egress. At about 0.6 MB per photo, that's
-roughly 15,000 client photos before paying ~$0.015/GB-month. D1, Workers, and Access
-are well within their free tiers at this scale.

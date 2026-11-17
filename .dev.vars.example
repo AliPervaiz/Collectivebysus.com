@@ -1,3 +1,5 @@
 # Copy to .dev.vars for local development (never committed).
 DEV_ADMIN_BYPASS=true
 SESSION_SECRET=local-dev-secret-change-me
+# Local-only webhook secret; scripts/smoke-test.sh signs test payloads with it.
+CAL_WEBHOOK_SECRET=local-test-secret

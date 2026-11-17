@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/inquiry.css" />
 </head>
 <body>
 
@@ -33,7 +34,7 @@
   <header class="page-header">
     <span class="eyebrow">Say Hello</span>
     <h1>Let's connect.</h1>
-    <p>I'd love to hear about what you're planning. <span data-booking hidden><a href="#book">Book a time</a> directly, or drop</span><span data-no-booking>Drop</span> a note any of the ways below.</p>
+    <p>I'd love to hear about what you're planning. Fill out the <a href="#inquire">short inquiry form</a> and I'll reply with availability and pricing, or reach out any of the ways below.</p>
     <div class="accent-line"></div>
   </header>
 
@@ -76,16 +77,94 @@
     </div>
   </section>
 
-  <section class="section alt booking" id="book" data-booking hidden>
+  <section class="section inq-section" id="inquire">
     <div class="container">
       <div class="section-head" style="text-align:center;">
-        <span class="eyebrow">Book a Session</span>
-        <h2>Pick a time that works for you.</h2>
-        <p>Choose how many hours you'd like, then a date and time. You'll get a confirmation by email, and I'll follow up to plan the details.</p>
+        <span class="eyebrow">Inquire</span>
+        <h2>Tell me about your session.</h2>
+        <p>A few quick questions so I can check my calendar and send you pricing. It takes about two minutes.</p>
       </div>
-      <div id="cal-booking" class="booking-embed"></div>
+      <form class="inq-form" data-inquiry-form novalidate>
+        <div class="inq-grid">
+          <label class="inq-field" for="inq-name">
+            <span>Name <em aria-hidden="true">*</em></span>
+            <input id="inq-name" name="name" type="text" autocomplete="name" maxlength="120" required />
+          </label>
+          <label class="inq-field" for="inq-email">
+            <span>Email <em aria-hidden="true">*</em></span>
+            <input id="inq-email" name="email" type="email" autocomplete="email" inputmode="email" maxlength="200" required />
+          </label>
+          <label class="inq-field" for="inq-phone">
+            <span>Phone <small>(optional)</small></span>
+            <input id="inq-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="40" />
+          </label>
+          <label class="inq-field" for="inq-instagram">
+            <span>Instagram handle <small>(optional)</small></span>
+            <input id="inq-instagram" name="instagram" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="100" placeholder="@yourhandle" />
+          </label>
+
+          <fieldset class="inq-field inq-wide inq-types" id="inq-session_type">
+            <legend>Session type <em aria-hidden="true">*</em></legend>
+            <div class="inq-pills">
+              <label><input type="radio" name="session_type" value="graduation" required /><span>Graduation</span></label>
+              <label><input type="radio" name="session_type" value="engagement" /><span>Engagement</span></label>
+              <label><input type="radio" name="session_type" value="event" /><span>Event</span></label>
+              <label><input type="radio" name="session_type" value="portrait" /><span>Portrait / Other</span></label>
+            </div>
+            <p class="inq-note">Grads under 18: a parent or guardian will need to sign off before the session.</p>
+          </fieldset>
+
+          <fieldset class="inq-field inq-wide inq-days">
+            <legend>Days you're open to shooting <small>(optional, pick up to <span data-max-picks>5</span>)</small></legend>
+            <p class="inq-note">Tap any days that could work. Greyed-out days are already booked or unavailable. I'll confirm the exact day and time with you.</p>
+            <div class="dp" data-day-picker></div>
+            <label class="inq-subfield" for="inq-date-notes-c">
+              <span>Anything about timing?</span>
+              <input id="inq-date-notes-c" name="date_notes" type="text" maxlength="500" placeholder="Golden hour, mornings only, flexible, a date further out..." />
+            </label>
+          </fieldset>
+
+          <label class="inq-field" for="inq-location">
+            <span>Location idea</span>
+            <input id="inq-location" name="location" type="text" maxlength="200" placeholder="SMU, Klyde Warren Park, the Arboretum, not sure yet..." />
+          </label>
+          <label class="inq-field" for="inq-people">
+            <span>Number of people</span>
+            <input id="inq-people" name="people_count" type="text" maxlength="40" placeholder="Just me, the two of us, ~50 guests" />
+          </label>
+          <label class="inq-field" for="inq-usage">
+            <span>How will you use the photos?</span>
+            <input id="inq-usage" name="usage" type="text" maxlength="500" placeholder="Grad announcements, Instagram, save-the-dates..." />
+          </label>
+          <label class="inq-field" for="inq-referral">
+            <span>How did you find me?</span>
+            <select id="inq-referral" name="referral">
+              <option value="">Choose one</option>
+              <option value="instagram">Instagram</option>
+              <option value="referral">Friend / referral</option>
+              <option value="google">Google</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <label class="inq-field inq-wide" for="inq-message">
+            <span>Anything else?</span>
+            <textarea id="inq-message" name="message" rows="5" maxlength="3000" placeholder="Outfits, vibe, a Pinterest board, questions for me..."></textarea>
+          </label>
+        </div>
+
+        <div class="inq-hp" aria-hidden="true">
+          <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
+        </div>
+
+        <div class="inq-turnstile" data-turnstile></div>
+        <p class="form-error inq-error" role="alert" aria-live="polite"></p>
+        <div class="inq-actions">
+          <button type="submit" class="btn solid">Send inquiry</button>
+          <p class="inq-privacy">By sending, you agree to how I handle your details in the <a href="/privacy">privacy policy</a>.</p>
+        </div>
+      </form>
       <noscript>
-        <p style="text-align:center;">Booking needs JavaScript. Please email <a href="mailto:contact@collectivebysus.com">contact@collectivebysus.com</a> instead.</p>
+        <p class="inq-noscript">This form needs JavaScript. Please email <a href="mailto:contact@collectivebysus.com">contact@collectivebysus.com</a> instead.</p>
       </noscript>
     </div>
   </section>
@@ -124,37 +203,14 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <span>© 2026 Susi Photography. All rights reserved.</span>
+        <span>© 2026 Susi Photography. All rights reserved. · <a href="/privacy">Privacy</a></span>
         <span>Made with care.</span>
       </div>
     </div>
   </footer>
 
-  <!-- Cal.com booking embed. Set CAL_LINK to "<cal-username>/<event-slug>" to turn booking on.
-       While it is empty, the booking section stays hidden and nothing loads from Cal.com. -->
-  <script>
-    (function () {
-      var CAL_LINK = "";
-      if (!CAL_LINK) return;
-      document.querySelectorAll("[data-booking]").forEach(function (n) { n.hidden = false; });
-      document.querySelectorAll("[data-no-booking]").forEach(function (n) { n.hidden = true; });
-
-      (function (C, A, L) { var p = function (a, ar) { a.q.push(ar); }; var d = C.document; C.Cal = C.Cal || function () { var cal = C.Cal; var ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { var api = function () { p(api, arguments); }; var namespace = ar[1]; api.q = api.q || []; if (typeof namespace === "string") { cal.ns[namespace] = cal.ns[namespace] || api; p(cal.ns[namespace], ar); p(cal, ["initNamespace", namespace]); } else p(cal, ar); return; } p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
-
-      Cal("init", "booking", { origin: "https://cal.com" });
-      Cal.ns.booking("inline", {
-        elementOrSelector: "#cal-booking",
-        calLink: CAL_LINK,
-        config: { layout: "month_view", theme: "light" }
-      });
-      Cal.ns.booking("ui", {
-        theme: "light",
-        cssVarsPerTheme: { light: { "cal-brand": "#4a6a85" } },
-        hideEventTypeDetails: false,
-        layout: "month_view"
-      });
-    })();
-  </script>
+  <script src="/js/site-config.js"></script>
+  <script src="/js/inquiry.js"></script>
 
 </body>
 </html>

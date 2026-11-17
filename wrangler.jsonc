@@ -37,13 +37,17 @@
     "ACCESS_AUD": "7f9320ef5c512dcb2aa8e840ca6f26ef433d5e8a4b4422b38510cf7a6cd9d550",
     // Optional extra allowlist on top of the Access policy.
     "ADMIN_EMAILS": "",
-    "NOTIFY_FROM": "galleries@collectivebysus.com",
+    "NOTIFY_FROM": "studio@collectivebysus.com",
     // Must be a *verified destination* in Email Routing (not the contact@ alias,
     // which itself forwards here).
-    "NOTIFY_TO": "collectivebysus@gmail.com"
+    "NOTIFY_TO": "collectivebysus@gmail.com",
+    // Client auto-replies: needs RESEND_API_KEY (secret) and a verified sender. Off for now.
+    "CLIENT_EMAIL_FROM": "",
+    // Optional Cloudflare Turnstile spam check (also needs TURNSTILE_SECRET). Off for now.
+    "TURNSTILE_SITE_KEY": ""
   },
 
-  // Emails Susi when a client submits gallery favorites. Email Routing is enabled
+  // Emails Susi about new inquiries and gallery submissions. Email Routing is enabled
   // on collectivebysus.com (contact@ forwards to collectivebysus@gmail.com), and
   // this binding can only deliver to that verified address.
   "send_email": [

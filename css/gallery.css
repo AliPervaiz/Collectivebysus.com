@@ -44,7 +44,7 @@
   font-size: 1rem;
   padding: 12px 14px;
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   color: var(--ink);
   border-radius: 0;
   outline: none;
@@ -53,8 +53,8 @@
 .pin-form input { width: 180px; text-align: center; letter-spacing: 0.3em; }
 .pin-form input:focus,
 .field input:focus,
-.field textarea:focus { border-color: var(--blue); }
-.form-error { color: #a4483e !important; min-height: 1.4em; font-size: 0.92rem; }
+.field textarea:focus { border-color: var(--primary); }
+.form-error { color: var(--danger) !important; min-height: 1.4em; font-size: 0.92rem; }
 
 /* ----------- Grid ----------- */
 .proof-grid {
@@ -84,7 +84,7 @@
   user-select: none;
 }
 .proof-open:hover img { opacity: 0.92; }
-.proof-item.is-fav { outline: 2px solid var(--blue); outline-offset: -2px; }
+.proof-item.is-fav { outline: 2px solid var(--primary); outline-offset: -2px; }
 
 /* ----------- Heart ----------- */
 .heart-btn {
@@ -97,7 +97,7 @@
   place-items: center;
   border: 0;
   border-radius: 50%;
-  background: rgba(246, 243, 238, 0.88);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(4px);
   cursor: pointer;
   transition: transform 0.15s ease, background 0.2s ease;
@@ -112,7 +112,7 @@
   stroke-width: 1.6;
   transition: fill 0.2s ease, stroke 0.2s ease;
 }
-.heart-btn.on svg { fill: var(--blue); stroke: var(--blue); }
+.heart-btn.on svg { fill: var(--primary); stroke: var(--primary); }
 
 /* ----------- Sticky bar ----------- */
 body.has-bar { padding-bottom: 90px; }
@@ -122,7 +122,7 @@ body.has-bar { padding-bottom: 90px; }
   right: 0;
   bottom: 0;
   z-index: 40;
-  background: rgba(246, 243, 238, 0.96);
+  background: color-mix(in srgb, var(--bg) 96%, transparent);
   backdrop-filter: blur(8px);
   border-top: 1px solid var(--line);
 }
@@ -138,7 +138,7 @@ body.has-bar { padding-bottom: 90px; }
 #barCount { font-family: var(--serif); font-size: 1.8rem; color: var(--ink); line-height: 1; }
 #barLabel { font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
 .proof-bar-msg { flex: 1; font-size: 0.9rem; color: var(--ink-soft); }
-.proof-bar-msg.flash { color: var(--blue-deep); }
+.proof-bar-msg.flash { color: var(--primary-deep); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 @media (max-width: 620px) {
   .proof-bar-inner { flex-wrap: wrap; gap: 8px 16px; }
@@ -153,7 +153,7 @@ body.no-scroll { overflow: hidden; }
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(20, 26, 31, 0.985);
+  background: color-mix(in srgb, var(--scrim) 98.5%, transparent);
   display: grid;
   grid-template-columns: 64px 1fr 64px;
   grid-template-rows: 1fr auto;
@@ -182,13 +182,13 @@ body.no-scroll { overflow: hidden; }
 .lb-close {
   background: none;
   border: 0;
-  color: rgba(246, 243, 238, 0.75);
+  color: color-mix(in srgb, var(--bg) 75%, transparent);
   cursor: pointer;
   font-size: 2.6rem;
   line-height: 1;
   transition: color 0.2s ease;
 }
-.lb-nav:hover, .lb-close:hover { color: #fff; }
+.lb-nav:hover, .lb-close:hover { color: var(--on-primary); }
 .lb-prev { grid-column: 1; grid-row: 1; }
 .lb-next { grid-column: 3; grid-row: 1; }
 .lb-close { position: absolute; top: 10px; right: 18px; font-size: 2.2rem; z-index: 2; }
@@ -199,19 +199,19 @@ body.no-scroll { overflow: hidden; }
   align-items: center;
   justify-content: space-between;
   padding: 14px 24px 22px;
-  color: rgba(246, 243, 238, 0.7);
+  color: color-mix(in srgb, var(--bg) 70%, transparent);
   font-size: 0.85rem;
   letter-spacing: 0.08em;
 }
 .lb-actions { display: flex; align-items: center; gap: 22px; }
 .lb-download {
-  color: rgba(246, 243, 238, 0.8);
+  color: color-mix(in srgb, var(--bg) 80%, transparent);
   font-size: 0.75rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   cursor: pointer;
 }
-.lb-download:hover { color: #fff; }
+.lb-download:hover { color: var(--on-primary); }
 .lb-heart {
   position: static;
   width: auto;
@@ -238,7 +238,7 @@ body.no-scroll { overflow: hidden; }
   position: fixed;
   inset: 0;
   z-index: 210;
-  background: rgba(31, 42, 51, 0.45);
+  background: color-mix(in srgb, var(--ink) 45%, transparent);
   display: grid;
   place-items: center;
   padding: 20px;

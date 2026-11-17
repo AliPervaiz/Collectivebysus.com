@@ -1,6 +1,9 @@
-/* Client proofing gallery — Collective by Sus */
+/* Client proofing gallery. Brand strings come from js/site-config.js. */
 (function () {
   "use strict";
+
+  const SITE = Object.assign({ businessName: "", ownerFirstName: "", contactEmail: "" }, window.SITE_CONFIG || {});
+  const owner = SITE.ownerFirstName || "your photographer";
 
   const slug = (location.pathname.match(/^\/g\/([a-z0-9]+)/) || [])[1];
   const api = (p = "") => `/api/g/${slug}${p}`;
@@ -24,7 +27,7 @@
       else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
       else node.setAttribute(k, v === true ? "" : v);
     }
-    for (const c of children.flat()) {
+    for (const c of children.flat(Infinity)) {
       if (c == null || c === false) continue;
       node.append(c instanceof Node ? c : document.createTextNode(String(c)));
     }
@@ -63,10 +66,10 @@
   function status(title, message) {
     app.replaceChildren(
       el("div", { class: "proof-status" },
-        el("span", { class: "eyebrow" }, "Collective by Sus"),
+        el("span", { class: "eyebrow" }, SITE.businessName),
         el("h2", {}, title),
         el("p", {}, message),
-        el("p", {}, "Questions? ", el("a", { href: "mailto:contact@collectivebysus.com" }, "contact@collectivebysus.com"))
+        SITE.contactEmail ? el("p", {}, "Questions? ", el("a", { href: `mailto:${SITE.contactEmail}` }, SITE.contactEmail)) : null
       )
     );
   }
@@ -82,7 +85,7 @@
 
     state.gallery = data.gallery;
     state.photos = data.photos;
-    document.title = `${data.gallery.title} | Collective by Sus`;
+    document.title = SITE.businessName ? `${data.gallery.title} | ${SITE.businessName}` : data.gallery.title;
     renderGallery();
   }
 
@@ -111,7 +114,7 @@
       el("div", { class: "proof-status" },
         el("span", { class: "eyebrow" }, "Private Gallery"),
         el("h2", {}, title || "Your gallery"),
-        el("p", {}, "Enter the PIN Susi sent you to view your photos."),
+        el("p", {}, `Enter the PIN ${owner} sent you to view your photos.`),
         form, msg
       )
     );
@@ -266,7 +269,7 @@
   document.getElementById("submitBtn").addEventListener("click", () => {
     const n = favCount();
     document.getElementById("submitSummary").textContent =
-      `You've chosen ${n} photo${n === 1 ? "" : "s"}. Susi will get your list right away.`;
+      `You've chosen ${n} photo${n === 1 ? "" : "s"}. ${owner} will get your list right away.`;
     document.getElementById("submitNote").value = state.gallery.client_note || "";
     modal.hidden = false;
     document.getElementById("submitNote").focus();
@@ -284,7 +287,7 @@
     state.gallery.client_note = note;
     modal.hidden = true;
     updateBar();
-    flash("Thank you! Your selections are on their way to Susi.");
+    flash(`Thank you! Your selections are on their way to ${owner}.`);
   });
 
   /* ---------- lightbox ---------- */

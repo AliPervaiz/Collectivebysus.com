@@ -16,6 +16,26 @@
   --placeholder:  #cfc9bf;   /* placeholder block */
   --placeholder-2:#bfb8ac;   /* placeholder block alt */
 
+  /* Tokens used by the CRM, galleries and inquiry form (mapped to this palette) */
+  --surface:      #ffffff;   /* cards, inputs */
+  --on-primary:   #f6f3ee;   /* text on primary fills */
+  --primary:      var(--blue);
+  --primary-deep: var(--blue-deep);
+  --primary-soft: var(--blue-soft);
+  --scrim:        #141a1f;   /* lightbox / dark overlay */
+  --danger:       #a4483e;
+  --danger-bg:    #f8ece9;
+  --no-post:      #7a3328;   /* "do not post" */
+  --amber:        #8a6136;
+  --amber-line:   #c9a27a;
+  --amber-bg:     #fbf5ec;
+  --success:      #4f6a4c;
+  --success-line: #8fa58c;
+  --success-dot:  #5f8a5a;
+  --minor:        #5a4a75;
+  --minor-line:   #6b5a86;
+  --minor-bg:     #f3f0f7;
+
   --serif: "Cormorant Garamond", "EB Garamond", Garamond, "Times New Roman", serif;
   --sans:  "Inter", "Helvetica Neue", Arial, sans-serif;
 
@@ -495,13 +515,13 @@ p { margin: 0 0 1em; color: var(--ink-soft); }
 }
 .fade-up { animation: fadeUp 0.7s ease both; }
 
-/* ----------- Booking (Cal.com embed) ----------- */
-.booking .section-head p { max-width: 600px; margin-left: auto; margin-right: auto; }
-.booking-embed {
-  max-width: 1040px;
-  margin: 0 auto;
-  min-height: 640px;
-  background: #fff;
-  border: 1px solid var(--line);
-  overflow: hidden;
-}
+
+/* ----------- Legal pages (privacy) ----------- */
+.legal-section { padding-top: 10px; }
+.legal { max-width: 720px; }
+.legal h2 { font-size: clamp(1.5rem, 2.6vw, 1.9rem); margin: 2em 0 0.4em; }
+.legal p, .legal li { color: var(--ink-soft); line-height: 1.7; }
+.legal ul { padding-left: 1.2em; margin: 0 0 1em; display: grid; gap: 0.55em; }
+.legal strong { color: var(--ink); font-weight: 500; }
+.legal-updated { font-size: 0.85rem; color: var(--muted) !important; letter-spacing: 0.04em; }
+.footer-bottom a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }

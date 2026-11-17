@@ -5,7 +5,8 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "db:migrate:local": "wrangler d1 migrations apply collectivebysus-galleries --local",
-    "db:migrate": "wrangler d1 migrations apply collectivebysus-galleries --remote"
+    "db:migrate": "wrangler d1 migrations apply collectivebysus-galleries --remote",
+    "test:smoke": "DB=collectivebysus-galleries scripts/smoke-test.sh http://localhost:8787"
   },
   "devDependencies": {
     "wrangler": "^4.159.0"
