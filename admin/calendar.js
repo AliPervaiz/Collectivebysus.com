@@ -1,7 +1,7 @@
-/* Calendar: month view of sessions (upcoming + past), with a day agenda on phones. */
+/* Sessions page, Month view: calendar of sessions plus day availability (block/open days). */
 
 import {
-  el, api, send, toast, attachMenu, startView, errorView, label, plural, TZ,
+  el, api, send, toast, attachMenu, viewToggle, startView, errorView, label, plural, TZ,
   STATUS_LABELS, TYPE_LABELS,
 } from "./lib.js";
 import { openSessionForm } from "./sessions.js";
@@ -9,8 +9,6 @@ import { openSessionForm } from "./sessions.js";
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MAX_PER_DAY = 3;
 const HIDDEN_BY_DEFAULT = new Set(["lost", "archived"]);
-// View shown the first time (before the browser remembers a choice): "month" or "list".
-const DEFAULT_VIEW = "list"; // Susi prefers the list
 
 /* ---------- date helpers (all in studio time) ---------- */
 
@@ -79,11 +77,6 @@ function gridDays({ y, m }) {
 export async function renderCalendar(query = new URLSearchParams()) {
   const month = parseMonth(query.get("m"));
   const showHidden = query.get("all") === "1";
-  // Month grid or list; remembered per browser so the preferred view opens by default.
-  let view = query.get("view");
-  if (view === "list" || view === "month") { try { localStorage.setItem("calView", view); } catch { /* private mode */ } }
-  else { try { view = localStorage.getItem("calView"); } catch { view = null; } }
-  if (view !== "list" && view !== "month") view = DEFAULT_VIEW;
   const mount = startView();
 
   const days = gridDays(month);
@@ -119,7 +112,7 @@ export async function renderCalendar(query = new URLSearchParams()) {
   const todayKey = keyFmt.format(new Date());
   const now = Date.now();
   const title = new Date(Date.UTC(month.y, month.m - 1, 15)).toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
-  const href = (mo, all = showHidden, v = view) => `#/calendar?m=${monthParam(mo)}${all ? "&all=1" : ""}&view=${v}`;
+  const href = (mo, all = showHidden) => `#/sessions?view=month&m=${monthParam(mo)}${all ? "&all=1" : ""}`;
 
   const inMonth = sessions.filter((s) => dayKey(s.starts_at).startsWith(monthParam(month)));
   const upcoming = inMonth.filter((s) => new Date(s.starts_at) >= now).length;
@@ -241,7 +234,7 @@ export async function renderCalendar(query = new URLSearchParams()) {
   const blockedIn = (d) => { const a = (avail.days || {})[d.key]; return a && a.override === "blocked" ? a : null; };
   const agendaDays = days.filter((d) => d.inMonth && (byDay.has(d.key) || blockedIn(d)));
   const agenda = el("section", { class: "cal-agenda" },
-    view === "list" ? null : el("h4", {}, "This month"),
+    el("h4", {}, "This month"),
     agendaDays.length
       ? agendaDays.map((day) => el("div", { class: `ag-day${day.key < todayKey ? " is-past" : ""}${day.key === todayKey ? " is-today" : ""}`, id: `ag-${day.key}` },
           el("div", { class: "ag-date" },
@@ -256,14 +249,12 @@ export async function renderCalendar(query = new URLSearchParams()) {
 
   const head = el("div", { class: "admin-head" },
     el("div", {},
-      el("span", { class: "eyebrow" }, "Calendar"),
+      el("span", { class: "eyebrow" }, "Sessions · Month"),
       el("h1", {}, title),
       el("p", { class: "sub" }, `${plural(inMonth.length, "session")} this month · ${upcoming} upcoming`)
     ),
     el("div", { class: "cal-controls" },
-      el("div", { class: "view-toggle", role: "group", "aria-label": "Calendar view" },
-        el("a", { class: view === "month" ? "on" : "", href: href(month, showHidden, "month"), "aria-current": view === "month" ? "true" : null }, "Month"),
-        el("a", { class: view === "list" ? "on" : "", href: href(month, showHidden, "list"), "aria-current": view === "list" ? "true" : null }, "List")),
+      viewToggle("month", "#/sessions?view=list", href(month)),
       el("a", { class: "btn small", href: href(shiftMonth(month, -1)), "aria-label": "Previous month" }, "‹"),
       el("a", { class: "btn small", href: href(parseMonth("")) }, "Today"),
       el("a", { class: "btn small", href: href(shiftMonth(month, 1)), "aria-label": "Next month" }, "›"),
@@ -285,9 +276,5 @@ export async function renderCalendar(query = new URLSearchParams()) {
       : null
   );
 
-  if (view === "list") {
-    agenda.classList.add("is-list");
-    return mount(head, legend, agenda, el("p", { class: "admin-muted small-text cal-hint" }, "Times are Central. Switch to Month to block or open days."));
-  }
   mount(head, legend, grid, el("p", { class: "admin-muted small-text cal-hint" }, "Tap an upcoming day to add a session, or to block or open it. Greyed days aren't shoot days. \"Asks\" are open inquiries that picked that day. Times are Central."), agenda);
 }

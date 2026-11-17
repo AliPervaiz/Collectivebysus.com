@@ -767,32 +767,7 @@ a.att-main:hover { color: var(--ink); background: color-mix(in srgb, var(--prima
 .view-toggle a + a { border-left: 1px solid var(--line); }
 .view-toggle a.on { background: var(--primary); color: var(--on-primary); }
 .view-toggle a:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
-.cal-agenda.is-list { display: block; margin-top: 0; }
-.cal-agenda.is-list .ag-day { grid-template-columns: 150px minmax(0, 1fr); column-gap: 20px; row-gap: 8px; align-items: start; }
-.cal-agenda.is-list .ag-date { grid-column: 1; grid-row: 1; padding-top: 11px; }
-.cal-agenda.is-list .ag-day > :not(.ag-date) { grid-column: 2; }
-/* List rows: light cards with a stage-colored stripe, so details stay readable. */
-.cal-agenda.is-list .cal-ev,
-.cal-agenda.is-list .cal-ev.ev-booked,
-.cal-agenda.is-list .cal-ev.ev-inquiry,
-.cal-agenda.is-list .cal-ev.ev-lost,
-.cal-agenda.is-list .cal-ev.ev-archived {
-  flex-wrap: wrap; padding: 10px 14px; font-size: 0.95rem; text-decoration: none;
-  background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-left: 4px solid var(--primary-soft); border-radius: 0;
-}
-.cal-agenda.is-list .cal-ev:hover { border-color: var(--primary); filter: none; color: var(--ink); }
-.cal-agenda.is-list .cal-ev.ev-booked { border-left-color: var(--primary); }
-.cal-agenda.is-list .cal-ev.ev-inquiry { border-left: 4px dashed var(--amber-line); }
-.cal-agenda.is-list .cal-ev.ev-lost, .cal-agenda.is-list .cal-ev.ev-archived { border-left-color: var(--line); color: var(--muted); }
-.cal-agenda.is-list .cal-ev-name { white-space: normal; font-weight: 500; }
-.cal-agenda.is-list .cal-ev-meta { color: var(--ink-soft); margin-top: 2px; }
-.cal-agenda.is-list .ag-day.is-past .cal-ev { opacity: 0.7; }
 .ag-blocked { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--ink-soft); padding: 6px 0; }
-@media (max-width: 600px) {
-  .cal-agenda.is-list .ag-day { grid-template-columns: minmax(0, 1fr); }
-  .cal-agenda.is-list .ag-date, .cal-agenda.is-list .ag-day > :not(.ag-date) { grid-column: 1; grid-row: auto; }
-  .cal-agenda.is-list .ag-date { padding-top: 0; }
-}
 .ag-blocked .cal-tag { display: inline-block; }
 
 /* Session form: existing / new client */

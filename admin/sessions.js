@@ -4,7 +4,7 @@ import {
   el, api, send, toast, startView, errorView, select, field, openModal,
   fmtDate, fmtDateTime, relTime, fmtMoney, parseMoney, centsToInput, toLocalInput, todayLocal, label,
   STATUS_LABELS, STATUSES, TYPE_LABELS, TYPES, METHOD_LABELS, KIND_LABELS,
-  postingBadge, minorBadge, loadClients, pencilChoice, attachMenu,
+  postingBadge, minorBadge, loadClients, pencilChoice, attachMenu, viewToggle,
 } from "./lib.js";
 import { paymentsTable } from "./clients.js";
 import { openGalleryForm, galleryRow } from "./galleries.js";
@@ -51,7 +51,7 @@ export async function renderSessions(query = new URLSearchParams()) {
   const sessions = data.sessions || [];
 
   const hrefFor = (st, ty) => {
-    const p = new URLSearchParams();
+    const p = new URLSearchParams({ view: "list" });
     if (st && st !== "active") p.set("status", st);
     if (ty) p.set("type", ty);
     const s = p.toString();
@@ -60,7 +60,9 @@ export async function renderSessions(query = new URLSearchParams()) {
 
   const head = el("div", { class: "admin-head" },
     el("div", {}, el("span", { class: "eyebrow" }, "Pipeline"), el("h1", {}, "Sessions")),
-    el("button", { class: "btn solid", type: "button", onclick: () => openSessionForm() }, "New session")
+    el("div", { class: "cal-controls" },
+      viewToggle("list", hrefFor(status, type), "#/sessions?view=month"),
+      el("button", { class: "btn solid", type: "button", onclick: () => openSessionForm() }, "New session"))
   );
   const chips = el("div", { class: "filter-chips", role: "navigation", "aria-label": "Filter by stage" },
     FILTERS.map(([v, l]) => el("a", { class: "chip" + (v === status ? " active" : ""), href: hrefFor(v, type) }, l)));

@@ -393,3 +393,20 @@ export function pencilChoice({ items, value, ariaLabel, prefix = "", display, on
   Object.defineProperty(wrap, "value", { get: () => current });
   return wrap;
 }
+
+/* ---------- Sessions page: List / Month view ---------- */
+
+/** "list" or "month", from ?view= (remembered per browser) or the last choice. Defaults to list. */
+export function sessionsView(query) {
+  let v = query.get("view");
+  if (v === "list" || v === "month") { try { localStorage.setItem("sessionsView", v); } catch { /* private mode */ } return v; }
+  try { v = localStorage.getItem("sessionsView") || localStorage.getItem("calView"); } catch { v = null; }
+  return v === "month" ? "month" : "list";
+}
+
+/** The List | Month switch shown at the top of the Sessions page. */
+export function viewToggle(current, listHref, monthHref) {
+  const link = (v, text, href) => el("a", { class: current === v ? "on" : "", href, "aria-current": current === v ? "true" : null }, text);
+  return el("div", { class: "view-toggle", role: "group", "aria-label": "View" },
+    link("list", "List", listHref), link("month", "Month", monthHref));
+}
