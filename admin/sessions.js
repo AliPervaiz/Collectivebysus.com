@@ -119,11 +119,67 @@ export function openSessionForm(existing, preset = {}, { onSaved } = {}) {
     notes: el("textarea", { rows: "3", maxlength: "4000" }, s.notes || ""),
   };
 
+  // Client: pick an existing one, or add a new one right here (no trip to the Clients page).
+  const nc = {
+    name: el("input", { type: "text", maxlength: "120", autocomplete: "off", placeholder: "Full name" }),
+    email: el("input", { type: "email", maxlength: "200", autocomplete: "off", autocapitalize: "off", placeholder: "Optional" }),
+    phone: el("input", { type: "tel", maxlength: "40", autocomplete: "off", placeholder: "Optional" }),
+    instagram: el("input", { type: "text", maxlength: "60", autocomplete: "off", autocapitalize: "off", placeholder: "@handle, optional" }),
+  };
+  let clientMode = "existing";
+  let createdClientId = null; // reuse if the session save fails and she submits again
+  let clientNote = "";        // how the client was resolved, for the final toast
+  const modeBtn = (m, text) => el("button", { type: "button", "data-mode": m, onclick: () => setClientMode(m) }, text);
+  const modeToggle = el("div", { class: "view-toggle client-mode", role: "group", "aria-label": "Client" },
+    modeBtn("existing", "Existing client"), modeBtn("new", "New client"));
+  const existingWrap = el("div", { class: "client-existing" });
+  const newWrap = el("div", { class: "client-new", hidden: true },
+    el("div", { class: "field-row" }, field("Name *", nc.name), field("Email", nc.email)),
+    el("div", { class: "field-row" }, field("Phone", nc.phone), field("Instagram", nc.instagram)));
+  function setClientMode(m) {
+    clientMode = m;
+    modeToggle.querySelectorAll("button").forEach((b) => {
+      const on = b.dataset.mode === m;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", String(on));
+    });
+    existingWrap.hidden = m !== "existing";
+    newWrap.hidden = m !== "new";
+    if (m === "new") nc.name.focus();
+  }
+  setClientMode("existing");
+  existingWrap.append(f.client_id);
+
+  async function resolveClientId() {
+    if (clientMode === "existing") {
+      if (!f.client_id.value) throw new Error("Pick a client, or switch to New client.");
+      return f.client_id.value;
+    }
+    if (createdClientId) return createdClientId;
+    const name = nc.name.value.trim();
+    if (!name) { nc.name.focus(); throw new Error("Enter the new client's name."); }
+    try {
+      const res = await send("/clients", "POST", {
+        name, email: nc.email.value.trim(), phone: nc.phone.value.trim(), instagram: nc.instagram.value.trim(), source: "added in admin",
+      });
+      createdClientId = res.client.id;
+      clientNote = "new";
+    } catch (ex) {
+      if (ex.status === 409 && ex.data && ex.data.client_id) {
+        createdClientId = ex.data.client_id;
+        clientNote = "existing";
+      } else throw ex;
+    }
+    return createdClientId;
+  }
+
   const { close } = openModal({
     title: existing ? "Edit session" : "New session",
     submitLabel: existing ? "Save" : "Create session",
     children: [
-      existing ? el("p", { class: "admin-muted small-text", style: "margin:0" }, `Client: ${existing.client_name || ""}`) : field("Client *", f.client_id),
+      existing
+        ? el("p", { class: "admin-muted small-text", style: "margin:0" }, `Client: ${existing.client_name || ""}`)
+        : el("div", { class: "field client-field" }, el("span", {}, "Client *"), preset.client_id ? null : modeToggle, existingWrap, newWrap),
       el("div", { class: "field-row" }, field("Type", f.type), field("Stage", f.status)),
       field("Title", f.title),
       el("div", { class: "field-row" }, field("Date & time (Central)", f.starts_at), field("Hours", f.hours)),
@@ -146,15 +202,17 @@ export function openSessionForm(existing, preset = {}, { onSaved } = {}) {
       };
       if (!existing || f.starts_at.value !== initialStart) body.starts_at = f.starts_at.value || null;
       if (!existing) {
-        if (!f.client_id.value) throw new Error("Pick a client first.");
-        body.client_id = f.client_id.value;
+        body.client_id = await resolveClientId();
         if (preset.inquiry_id) body.inquiry_id = preset.inquiry_id;
       }
       const res = existing
         ? await send(`/sessions/${existing.id}`, "PATCH", body)
         : await send("/sessions", "POST", body);
       close();
-      toast(existing ? "Saved" : "Session created");
+      toast(existing ? "Saved"
+        : clientNote === "new" ? "Client and session created"
+        : clientNote === "existing" ? "Session created. That email was already a client, so it's linked to them."
+        : "Session created");
       if (onSaved) onSaved(res.session);
       else if (!existing) location.hash = `#/s/${res.session.id}`;
     },
@@ -162,8 +220,13 @@ export function openSessionForm(existing, preset = {}, { onSaved } = {}) {
 
   if (!existing) {
     loadClients().then((clients) => {
-      const opts = [["", clients.length ? "Choose a client…" : "No clients yet. Add one first."], ...clients.map((c) => [c.id, c.name + (c.email ? ` (${c.email})` : "")])];
-      f.client_id.replaceWith(f.client_id = select(opts, preset.client_id || "", { required: true }));
+      const opts = [["", "Choose a client…"], ...clients.map((c) => [c.id, c.name + (c.email ? ` (${c.email})` : "")])];
+      f.client_id.replaceWith(f.client_id = select(opts, preset.client_id || "", { "aria-label": "Existing client" }));
+      if (!clients.length) {
+        // Nobody to pick yet: go straight to adding the client here.
+        modeToggle.querySelector('[data-mode="existing"]').disabled = true;
+        setClientMode("new");
+      }
     }).catch(() => {
       f.client_id.replaceChildren(el("option", { value: "" }, "Couldn't load clients"));
     });

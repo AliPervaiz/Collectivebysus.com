@@ -794,3 +794,18 @@ a.att-main:hover { color: var(--ink); background: color-mix(in srgb, var(--prima
   .cal-agenda.is-list .ag-date { padding-top: 0; }
 }
 .ag-blocked .cal-tag { display: inline-block; }
+
+/* Session form: existing / new client */
+.client-field { gap: 10px; }
+.client-mode { align-self: flex-start; margin: 2px 0 2px; }
+.client-mode button {
+  border: 0; font: inherit; padding: 7px 14px; font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--ink-soft); background: var(--surface); cursor: pointer;
+}
+.client-mode button + button { border-left: 1px solid var(--line); }
+.client-mode button.on { background: var(--primary); color: var(--on-primary); }
+.client-mode button:disabled { opacity: 0.45; cursor: not-allowed; }
+.client-mode button:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.client-new { display: grid; gap: 0; border-left: 2px solid var(--primary-soft); padding-left: 12px; }
+.client-new[hidden], .client-existing[hidden] { display: none; }
+.client-new .field { margin-top: 8px; }
