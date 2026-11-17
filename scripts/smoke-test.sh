@@ -97,6 +97,8 @@ has "balance owed computed (200.00 left)" '"balance_cents":20000'
 expect "stage change to shot" 200 "${J[@]}" -X PATCH "$B/api/admin/sessions/$SID" -d '{"status":"shot"}'
 expect "sessions filter by stage" 200 "$B/api/admin/sessions?status=shot"
 has "filtered list has session" "$SID"
+expect "sessions filter by stage group" 200 "$B/api/admin/sessions?status=shot,editing"
+expect "bad stage in group -> 400" 400 "$B/api/admin/sessions?status=shot,nope"
 expect "delete payment" 200 "${J[@]}" -X DELETE "$B/api/admin/payments/$PID"
 
 echo "== availability (day picker)"

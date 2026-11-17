@@ -9,7 +9,29 @@ import {
 import { paymentsTable } from "./clients.js";
 import { openGalleryForm, galleryRow } from "./galleries.js";
 
-const FILTERS = [["active", "Active"], ...STATUSES.map((s) => [s, STATUS_LABELS[s]]), ["all", "All"]];
+// Filter tabs on the Sessions list. Each covers one or more stages; no tab selected = everything.
+const STAGE_GROUPS = [
+  ["inquiry", "Inquiry", ["inquiry"]],
+  ["booked", "Booked", ["booked"]],
+  ["editing", "Editing", ["shot", "editing"]],
+  ["done", "Done", ["delivered", "done"]],
+  ["archived", "Archived", ["archived", "lost"]],
+];
+/** Tab key for ?stage= (or an older ?status= link like "shot"), or "" for everything. */
+const groupFor = (v) => (v ? (STAGE_GROUPS.find(([k, , st]) => k === v || st.includes(v)) || [""])[0] : "");
+
+/** Upcoming soonest first, then sessions with no date, then past ones (most recent first). */
+function sortForList(list) {
+  const now = Date.now();
+  const rank = (s) => (!s.starts_at ? 1 : new Date(s.starts_at) >= now ? 0 : 2);
+  return list.slice().sort((a, b) => {
+    const ra = rank(a), rb = rank(b);
+    if (ra !== rb) return ra - rb;
+    if (ra === 0) return a.starts_at.localeCompare(b.starts_at);
+    if (ra === 2) return b.starts_at.localeCompare(a.starts_at);
+    return String(b.created_at || "").localeCompare(String(a.created_at || ""));
+  });
+}
 const statusOptions = STATUSES.map((s) => [s, STATUS_LABELS[s]]);
 
 /** "Quoted $300.00 · Paid $100.00" */
@@ -40,19 +62,20 @@ function stageEditor(s, onChanged) {
 /* ---------- pipeline list ---------- */
 
 export async function renderSessions(query = new URLSearchParams()) {
-  const status = query.get("status") || "active";
+  const group = groupFor(query.get("stage") || query.get("status"));
   const type = query.get("type") || "";
   const mount = startView();
-  const qs = new URLSearchParams({ status });
+  const stages = group ? STAGE_GROUPS.find(([k]) => k === group)[2] : null;
+  const qs = new URLSearchParams({ status: stages ? stages.join(",") : "all" });
   if (type) qs.set("type", type);
   let data;
   try { data = await api(`/sessions?${qs}`); }
   catch (err) { return mount(...errorView(err)); }
-  const sessions = data.sessions || [];
+  const sessions = sortForList(data.sessions || []);
 
   const hrefFor = (st, ty) => {
     const p = new URLSearchParams({ view: "list" });
-    if (st && st !== "active") p.set("status", st);
+    if (st) p.set("stage", st);
     if (ty) p.set("type", ty);
     const s = p.toString();
     return `#/sessions${s ? `?${s}` : ""}`;
@@ -61,24 +84,29 @@ export async function renderSessions(query = new URLSearchParams()) {
   const head = el("div", { class: "admin-head" },
     el("div", {}, el("span", { class: "eyebrow" }, "Pipeline"), el("h1", {}, "Sessions")),
     el("div", { class: "cal-controls" },
-      viewToggle("list", hrefFor(status, type), "#/sessions?view=month"),
+      viewToggle("list", hrefFor(group, type), "#/sessions?view=month"),
       el("button", { class: "btn solid", type: "button", onclick: () => openSessionForm() }, "New session"))
   );
   const chips = el("div", { class: "filter-chips", role: "navigation", "aria-label": "Filter by stage" },
-    FILTERS.map(([v, l]) => el("a", { class: "chip" + (v === status ? " active" : ""), href: hrefFor(v, type) }, l)));
+    STAGE_GROUPS.map(([k, l]) => el("a", {
+      class: "chip" + (k === group ? " active" : ""),
+      href: hrefFor(k === group ? "" : k, type), // click the selected tab again to show everything
+      "aria-pressed": String(k === group),
+      title: k === group ? "Show all sessions" : null,
+    }, l)));
   const typeSel = pencilChoice({
     items: [["", "All types"], ...TYPES.map((t) => [t, TYPE_LABELS[t]])],
     value: type,
     ariaLabel: "Session type",
     prefix: "Type",
     className: "filter-choice",
-    onChange: (v) => { location.hash = hrefFor(status, v); },
+    onChange: (v) => { location.hash = hrefFor(group, v); },
   });
 
   const list = sessions.length
     ? el("div", { class: "row-list" }, sessions.map(pipelineRow))
     : el("div", { class: "empty-state small" }, el("p", { style: "margin:0" },
-        status === "active" ? "No active sessions. When someone books, they'll show up here." : "Nothing in this stage right now."));
+        group ? "Nothing in this stage right now." : "No sessions yet. New inquiries and bookings show up here."));
 
   mount(head, el("div", { class: "filter-bar" }, chips, typeSel), list);
 }
