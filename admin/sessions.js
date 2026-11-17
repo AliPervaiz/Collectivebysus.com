@@ -4,7 +4,7 @@ import {
   el, api, send, toast, startView, errorView, select, field, openModal,
   fmtDate, fmtDateTime, relTime, fmtMoney, parseMoney, centsToInput, toLocalInput, todayLocal, label,
   STATUS_LABELS, STATUSES, TYPE_LABELS, TYPES, METHOD_LABELS, KIND_LABELS,
-  postingBadge, minorBadge, loadClients, pencilChoice, attachMenu, viewToggle,
+  postingBadge, minorBadge, statusPill, loadClients, pencilChoice, attachMenu, viewToggle,
 } from "./lib.js";
 import { paymentsTable } from "./clients.js";
 import { openGalleryForm, galleryRow } from "./galleries.js";
@@ -248,7 +248,8 @@ export async function renderSessionDetail(id, { refresh = false } = {}) {
   const galleries = data.galleries || [];
   const reload = () => renderSessionDetail(id, { refresh: true });
 
-  const stage = stageEditor(s, reload);
+  // Stage is changed with Edit here; the pencil only lives on list rows.
+  const stage = statusPill(s.status);
 
   const head = el("div", { class: "admin-head" },
     el("div", {},
