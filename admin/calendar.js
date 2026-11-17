@@ -177,8 +177,8 @@ export async function renderCalendar(query = new URLSearchParams()) {
       const list = byDay.get(day.key) || [];
       const isPast = day.key < todayKey;
       const a = (avail.days || {})[day.key];
-      // Hatch every non-shoot day (past ones too) unless it was opened as a one-off.
-      const offDay = a && !a.shoot_day && a.override !== "open";
+      // Past days all look the same (muted). From today on, hatch non-shoot days unless opened as a one-off.
+      const offDay = a && !isPast && !a.shoot_day && a.override !== "open";
       const cls = ["cal-day", day.inMonth ? "" : "out", isPast ? "is-past" : "", day.key === todayKey ? "is-today" : "",
         list.length ? "has-ev" : "", offDay ? "is-off" : "", a && a.reason === "blocked" ? "is-blocked" : "",
         new Date(`${day.key}T12:00:00Z`).getUTCDay() >= 4 ? "menu-right" : ""]
