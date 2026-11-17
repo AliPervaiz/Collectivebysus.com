@@ -6,13 +6,14 @@ import { renderClients, renderClientDetail } from "./clients.js";
 import { renderSessions, renderSessionDetail } from "./sessions.js";
 import { renderSettings } from "./settings.js";
 import { renderCalendar } from "./calendar.js";
+import { sessionsView } from "./lib.js";
 
 const routes = [
   [/^\/?$/, "dashboard", () => renderDashboard()],
   [/^\/clients\/?$/, "clients", () => renderClients()],
   [/^\/c\/([\w-]+)/, "clients", (m) => renderClientDetail(m[1])],
-  [/^\/calendar\/?$/, "calendar", (m, q) => renderCalendar(q)],
-  [/^\/sessions\/?$/, "sessions", (m, q) => renderSessions(q)],
+  [/^\/calendar\/?$/, "sessions", (m, q) => { q.set("view", "month"); location.replace(`#/sessions?${q}`); }],
+  [/^\/sessions\/?$/, "sessions", (m, q) => (sessionsView(q) === "month" ? renderCalendar(q) : renderSessions(q))],
   [/^\/s\/([\w-]+)/, "sessions", (m) => renderSessionDetail(m[1])],
   [/^\/galleries\/?$/, "galleries", () => renderGalleryList()],
   [/^\/g\/([\w-]+)/, "galleries", (m) => renderGalleryDetail(m[1])],
