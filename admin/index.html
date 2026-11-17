@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>Gallery Manager | Collective by Sus</title>
+  <meta name="theme-color" content="#f6f3ee" />
+  <title>Studio | Collective by Sus</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,12 +16,16 @@
 </head>
 <body class="admin-page">
 
-  <nav class="site-nav">
+  <nav class="site-nav admin-nav" aria-label="Admin">
     <div class="nav-inner">
-      <a href="/admin/" class="brand">Collective by Sus<span>.</span></a>
+      <a href="/" class="brand" title="Go to the website">Collective by Sus<span>.</span></a>
       <ul class="admin-nav-links">
-        <li><a href="/admin/" class="active">Galleries</a></li>
-        <li><a href="/" target="_blank" rel="noopener">View Site</a></li>
+        <li><a href="#/" data-nav="dashboard">Dashboard</a></li>
+        <li><a href="#/clients" data-nav="clients">Clients</a></li>
+        <li><a href="#/calendar" data-nav="calendar">Calendar</a></li>
+        <li><a href="#/sessions" data-nav="sessions">Sessions</a></li>
+        <li><a href="#/galleries" data-nav="galleries">Galleries</a></li>
+        <li><a href="#/settings" data-nav="settings">Settings</a></li>
       </ul>
     </div>
   </nav>
@@ -31,6 +36,6 @@
 
   <div class="toast" id="toast" hidden></div>
 
-  <script src="/admin/admin.js"></script>
+  <script type="module" src="/admin/app.js"></script>
 </body>
 </html>
