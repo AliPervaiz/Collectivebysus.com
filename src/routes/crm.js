@@ -586,9 +586,11 @@ async function listSessions(env, url) {
     where.push(`s.status IN (${ACTIVE_STATUSES.map(() => "?").join(", ")})`);
     vals.push(...ACTIVE_STATUSES);
   } else if (status !== "all") {
-    if (!oneOf(status, SESSION_STATUSES)) return bad("Unknown session status.");
-    where.push("s.status = ?");
-    vals.push(status);
+    // One stage, or several separated by commas (e.g. "shot,editing").
+    const list = [...new Set(status.split(",").map((x) => x.trim()).filter(Boolean))];
+    if (!list.length || list.some((x) => !oneOf(x, SESSION_STATUSES))) return bad("Unknown session status.");
+    where.push(`s.status IN (${list.map(() => "?").join(", ")})`);
+    vals.push(...list);
   }
   const clientId = cleanId(url.searchParams.get("client_id"));
   if (clientId) { where.push("s.client_id = ?"); vals.push(clientId); }
