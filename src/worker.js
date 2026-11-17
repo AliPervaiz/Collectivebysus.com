@@ -97,6 +97,11 @@ export default {
         });
       }
 
+      // The old standalone inquiry page now lives on Contact; keep shared links working.
+      if (/^\/inquire(\.html)?\/?$/.test(path)) {
+        return Response.redirect(`${url.origin}/contact#inquire`, 301);
+      }
+
       return env.ASSETS.fetch(request);
     } catch (err) {
       console.error(err);
