@@ -7,7 +7,7 @@
 #
 # Creates throwaway rows (emails *@smoke.example) and deletes them at the end.
 set -u
-B="${1:-http://localhost:8791}"
+B="${1:-${B:-http://localhost:8791}}"   # server: first argument, or B=..., default the sandbox
 case "$B" in http://localhost*|http://127.0.0.1*) ;; *) echo "Refusing: local URLs only"; exit 2;; esac
 CAL_SECRET="${CAL_SECRET:-local-test-secret}"
 DB="${DB:-fieldnote-crm}"
@@ -168,10 +168,30 @@ expect "settings bad email -> 400" 400 "${J[@]}" -X PUT "$B/api/admin/settings" 
 expect "settings save" 200 "${J[@]}" -X PUT "$B/api/admin/settings" -d '{"settings":{"hourly_rate_text":"$175/hour"}}'
 expect "contracts list" 200 "$B/api/admin/contracts"
 has "draft disclaimer" "not legal advice"
-for k in clients sessions payments; do
+for k in clients sessions payments inquiries galleries; do
   expect "export $k.csv" 200 -D "$TMP/h" "$B/api/admin/export/$k.csv"
   grep -qi "content-type: text/csv" "$TMP/h" && ok "$k.csv content-type" || bad "$k.csv content-type" "$(grep -i content-type "$TMP/h")"
 done
+
+expect "export everything.zip" 200 -D "$TMP/h" "$B/api/admin/export/everything.zip"
+cp "$TMP/body" "$TMP/all.zip"
+grep -qi "content-type: application/zip" "$TMP/h" && ok "zip content-type" || bad "zip content-type" "$(grep -i content-type "$TMP/h")"
+unzip -tq "$TMP/all.zip" >/dev/null 2>&1 && ok "zip opens cleanly" || bad "zip opens cleanly" "unzip -t failed"
+unzip -l "$TMP/all.zip" 2>/dev/null | grep -q "complete-backup.json" && ok "zip has complete backup" || bad "zip has complete backup" "missing"
+unzip -p "$TMP/all.zip" complete-backup.json 2>/dev/null | grep -q '"rate_limits"' && bad "backup skips rate_limits" "present" || ok "backup skips rate_limits"
+expect "export unknown file -> 404" 404 "$B/api/admin/export/secrets.csv"
+expect "export needs auth" 403 -H "Host: fieldnote.example" "$B/api/admin/export/everything.zip"
+expect "back up now" 200 "${J[@]}" -X POST "$B/api/admin/backups"
+has "backup has rows" '"rows":'
+BK=$(jget name)
+expect "backups list" 200 "$B/api/admin/backups"
+has "list has today's backup" "$BK"
+expect "download backup" 200 "$B/api/admin/backups/$BK"
+cp "$TMP/body" "$TMP/bk.gz"
+gunzip -c "$TMP/bk.gz" 2>/dev/null | grep -q '"studio-backup-1"' && ok "backup is gzipped JSON" || bad "backup is gzipped JSON" "could not read"
+expect "backup path traversal -> 404" 404 "$B/api/admin/backups/..%2Fgalleries%2Fx.json.gz"
+expect "backups need auth" 403 -H "Host: fieldnote.example" "$B/api/admin/backups"
+expect "backup not servable as gallery image" 404 "$B/api/g/backups/photos/$BK/full"
 
 echo "== Cal.com webhook"
 cal() { # cal <name> <want> <body> [signature]
@@ -252,8 +272,13 @@ expect "deleted gallery 404" 404 "$B/api/g/$SLUG"
 
 echo "== cleanup"
 expect "delete minor client" 200 "${J[@]}" -X DELETE "$B/api/admin/clients/$CID"
-sql "DELETE FROM clients WHERE email LIKE '%@smoke.example'; DELETE FROM rate_limits;"
-ok "removed *@smoke.example rows"
+# The local DB can be busy while the dev server holds it, so retry and check it really happened.
+for i in 1 2 3 4 5; do
+  sql "DELETE FROM clients WHERE email LIKE '%@smoke.example'; DELETE FROM rate_limits;"
+  curl -s "$B/api/admin/clients?q=%40smoke.example" | grep -q 'smoke.example' || break
+  sleep 1
+done
+curl -s "$B/api/admin/clients?q=%40smoke.example" | grep -q 'smoke.example' && bad "removed *@smoke.example rows" "test clients still there" || ok "removed *@smoke.example rows"
 
 echo
 echo "passed: $PASS  failed: $FAIL"

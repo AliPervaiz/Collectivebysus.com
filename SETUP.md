@@ -47,3 +47,31 @@ Merging to `main` deploys via Cloudflare Workers Builds. New migrations must be 
 cp .dev.vars.example .dev.vars && npm install && npm run db:migrate:local && npm run dev
 npm run test:smoke   # with the dev server running on :8787
 ```
+
+## Backups and restoring
+
+Three layers, newest to oldest:
+
+1. **D1 Time Travel** (built into Cloudflare, nothing to set up): roll the database back to any minute
+   in the last 30 days (Workers Paid) or 7 days (Free).
+   `npx wrangler d1 time-travel restore <db-name> --timestamp 2026-11-18T15:00:00Z`
+2. **Weekly backups**: every Sunday 09:17 UTC the worker saves the whole database to R2 at
+   `backups/YYYY-MM-DD.json.gz` and keeps the newest 26 (about six months). Cron is `triggers` in
+   wrangler config; code is `src/lib/backup.js`. Admin → Settings → Your data lists them, downloads them,
+   and has **Back up now** (same-day copies replace each other). `rate_limits` is skipped.
+3. **Download everything** (Settings → Your data): a ZIP with CSVs for clients, sessions, payments,
+   inquiries and galleries, plus `complete-backup.json` (same format as the weekly backups).
+
+Gallery photos live in R2 under `galleries/` and are not in the database backups (they are copies of the
+photographer's own edited files).
+
+To restore from a weekly backup or a `complete-backup.json`:
+
+```bash
+node scripts/restore-backup.mjs 2026-11-16.json.gz > restore.sql     # every table in the backup is emptied and refilled
+npx wrangler d1 execute <db-name> --local --file restore.sql          # try it locally first
+npx wrangler d1 execute <db-name> --remote --file restore.sql         # then the real site
+```
+
+Run pending migrations first if the backup is newer than the database. Test a restore locally before ever
+doing it on a live site.

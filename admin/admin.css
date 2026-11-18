@@ -881,3 +881,8 @@ a.att-main:hover { color: var(--ink); background: color-mix(in srgb, var(--prima
 
 .ins-tip { position: fixed; z-index: 400; background: var(--ink); color: var(--bg); font-size: 0.8rem; padding: 6px 10px; pointer-events: none; white-space: nowrap; box-shadow: 0 6px 18px rgba(0,0,0,0.18); }
 @media (prefers-reduced-motion: reduce) { .ins-bar-fill { transition: none; } }
+
+/* ---------- Settings: backups ---------- */
+.backup-rows { list-style: none; margin: 0 0 12px; padding: 0; border-top: 1px solid var(--line); }
+.backup-rows li { display: grid; grid-template-columns: minmax(110px, auto) 1fr auto; gap: 12px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--line); }
+@media (max-width: 520px) { .backup-rows li { grid-template-columns: 1fr auto; } .backup-rows li > :nth-child(2) { grid-column: 1 / -1; grid-row: 2; } }
