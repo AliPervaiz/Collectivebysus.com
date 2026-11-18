@@ -1,4 +1,4 @@
-/* Settings: business info, booking, reminders, auto-reply, policies, exports, contract templates. */
+/* Settings: business info, booking, reminders, auto-reply, policies, your data (exports + backups), contract templates. */
 
 import {
   el, api, send, toast, startView, errorView, field, fmtMoney, parseMoney, centsToInput, fmtDate, todayLocal,
@@ -152,11 +152,45 @@ function settingsForm(data) {
 }
 
 function exportsPanel() {
-  const link = (file, text) => el("a", { class: "btn small", href: `/api/admin/export/${file}`, download: file }, text);
+  const link = (file, text, cls = "btn small") => el("a", { class: cls, href: `/api/admin/export/${file}`, download: file }, text);
+  const list = el("div", { class: "backup-list" }, el("p", { class: "admin-muted small-text" }, "Loading backups…"));
+  const now = el("button", { class: "btn small", type: "button" }, "Back up now");
+
+  const kb = (n) => (n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`);
+  async function load() {
+    try {
+      const { backups, keep } = await api("/backups");
+      list.replaceChildren(
+        backups.length
+          ? el("ul", { class: "backup-rows" }, backups.slice(0, 6).map((b) => el("li", {},
+              el("span", {}, fmtDate(`${b.name.slice(0, 10)}T12:00:00Z`)),
+              el("span", { class: "admin-muted small-text" }, [b.reason === "manual" ? "made by you" : "weekly", b.rows != null ? `${b.rows} records` : null, kb(b.size)].filter(Boolean).join(" · ")),
+              el("a", { class: "linklike small-text", href: `/api/admin/backups/${encodeURIComponent(b.name)}`, download: b.name }, "Download"))))
+          : el("p", { class: "admin-muted small-text" }, "No backups yet. The first weekly one is made on Sunday, or make one now."),
+        ...(backups.length > 6 ? [el("p", { class: "admin-muted small-text" }, `${backups.length} backups saved (the newest ${keep} are kept).`)] : [])
+      );
+    } catch (err) {
+      list.replaceChildren(el("p", { class: "admin-muted small-text" }, "Couldn't load backups."));
+    }
+  }
+  now.addEventListener("click", async () => {
+    now.disabled = true; now.textContent = "Backing up…";
+    try { const r = await send("/backups", "POST", {}); toast(`Backed up ${r.rows} records`); await load(); }
+    catch (err) { toast(err.message || "Backup failed"); }
+    finally { now.disabled = false; now.textContent = "Back up now"; }
+  });
+  load();
+
   return el("div", { class: "panel" },
-    el("h2", { class: "h4" }, "Export"),
-    el("p", { class: "admin-muted small-text" }, "Download spreadsheets (CSV) of everything. Opens in Excel, Numbers or Google Sheets."),
-    el("div", { class: "btn-row" }, link("clients.csv", "Clients"), link("sessions.csv", "Sessions"), link("payments.csv", "Payments"))
+    el("h2", { class: "h4" }, "Your data"),
+    el("p", { class: "admin-muted small-text" }, "Everything in your studio, yours to keep. Spreadsheets open in Excel, Numbers or Google Sheets."),
+    el("div", { class: "btn-row" }, link("everything.zip", "Download everything (.zip)", "btn solid small")),
+    el("div", { class: "btn-row" }, link("clients.csv", "Clients"), link("sessions.csv", "Sessions"), link("payments.csv", "Payments"),
+      link("inquiries.csv", "Inquiries"), link("galleries.csv", "Galleries")),
+    el("h3", { class: "h4", style: "margin-top:22px" }, "Backups"),
+    el("p", { class: "admin-muted small-text" }, "A full copy of your studio is saved automatically every week, and the last six months are kept. Gallery photos are stored separately and aren't part of these copies."),
+    list,
+    el("div", { class: "btn-row" }, now)
   );
 }
 

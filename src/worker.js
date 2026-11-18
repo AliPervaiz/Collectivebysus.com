@@ -10,6 +10,7 @@
  *   /api/public/availability  Open days for the inquiry form's day picker
  *   /api/inquiry            Public inquiry form submission
  *   /api/webhooks/cal       Cal.com booking webhook (HMAC signed)
+ *   scheduled (weekly)      database backup to R2 backups/ (src/lib/backup.js)
  *
  * Bindings (see wrangler.jsonc):
  *   ASSETS   static assets
@@ -36,8 +37,17 @@ import { handleClient } from "./routes/client-gallery.js";
 import { handleCrm } from "./routes/crm.js";
 import { handleInquiry, handlePublicSettings, handlePublicAvailability } from "./routes/inquiry.js";
 import { handleCalWebhook } from "./routes/webhooks.js";
+import { runBackup } from "./lib/backup.js";
 
 export default {
+  // Weekly database backup into R2 (see "triggers" in wrangler config and src/lib/backup.js).
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(runBackup(env, { reason: "weekly" }).then(
+      (r) => console.log(`backup ${r.name}: ${r.rows} rows, ${r.size} bytes, pruned ${r.pruned}`),
+      (err) => { console.error("backup failed", err); throw err; }
+    ));
+  },
+
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;

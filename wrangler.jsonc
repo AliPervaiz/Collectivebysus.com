@@ -7,6 +7,8 @@
   "observability": {
     "enabled": true
   },
+  // Weekly database backup to R2 (backups/YYYY-MM-DD.json.gz, newest 26 kept). Sundays 09:17 UTC.
+  "triggers": { "crons": ["17 9 * * 0"] },
   "assets": {
     "directory": ".",
     "binding": "ASSETS",

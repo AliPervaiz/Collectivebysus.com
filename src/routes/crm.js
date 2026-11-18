@@ -12,6 +12,7 @@ import {
 import { getSettings, saveSettings } from "../lib/settings.js";
 import { computeAvailability, availabilityConfig, isDay } from "../lib/availability.js";
 import { insights } from "../lib/insights.js";
+import { dumpAll, runBackup, listBackups, backupKey, zipFiles, KEEP } from "../lib/backup.js";
 import { adminGallery } from "../lib/galleries.js";
 import { emailStatus } from "../lib/email.js";
 import { toCsv, csvResponse } from "../lib/csv.js";
@@ -80,9 +81,15 @@ export async function handleCrm(request, env, parts, ctx, admin) {
   }
 
   if (section === "export" && n === 2 && method === "GET") {
-    if (id === "clients.csv") return exportClients(env);
-    if (id === "sessions.csv") return exportSessions(env);
-    if (id === "payments.csv") return exportPayments(env);
+    const one = EXPORTS[id];
+    if (one) return csvResponse(exportName(id.replace(/\.csv$/, "")), await one(env));
+    if (id === "everything.zip") return exportEverything(env);
+  }
+
+  if (section === "backups") {
+    if (n === 1 && method === "GET") return json({ backups: await listBackups(env), keep: KEEP });
+    if (n === 1 && method === "POST") return json(await runBackup(env, { reason: "manual" }));
+    if (n === 2 && method === "GET") return downloadBackup(env, id);
   }
 
   return notFound();
@@ -960,7 +967,7 @@ function exportName(kind) {
   return `${BRAND.fileSlug}-${kind}-${todayChicago()}.csv`;
 }
 
-async function exportClients(env) {
+async function clientsCsv(env) {
   const { results } = await env.DB.prepare(`${CLIENT_SELECT} ORDER BY c.created_at DESC`).all();
   const headers = ["Name", "Email", "Phone", "Instagram", "Can post", "Minor", "Guardian name", "Guardian email",
     "Source", "Sessions", "Last session (Central)", "Open inquiries", "Balance owed", "Last contact (Central)",
@@ -970,10 +977,10 @@ async function exportClients(env) {
     c.guardian_email, c.source, c.session_count, localDateTime(c.last_session_at), c.open_inquiries,
     dollars(c.balance_cents), localDateTime(c.last_contact_at), c.notes, localDateTime(c.created_at),
   ]);
-  return csvResponse(exportName("clients"), toCsv(headers, rows));
+  return toCsv(headers, rows);
 }
 
-async function exportSessions(env) {
+async function sessionsCsv(env) {
   const { results } = await env.DB.prepare(
     `SELECT s.*, c.name AS client_name, c.email AS client_email, ${PAID_SQL} AS paid_cents
      FROM sessions s JOIN clients c ON c.id = s.client_id ${SESSION_ORDER}`
@@ -985,10 +992,10 @@ async function exportSessions(env) {
     dollars(s.quoted_cents), dollars(s.paid_cents),
     s.quoted_cents == null ? "" : dollars(s.quoted_cents - s.paid_cents), s.notes, localDateTime(s.created_at),
   ]);
-  return csvResponse(exportName("sessions"), toCsv(headers, rows));
+  return toCsv(headers, rows);
 }
 
-async function exportPayments(env) {
+async function paymentsCsv(env) {
   const { results } = await env.DB.prepare(
     `SELECT p.*, c.name AS client_name, s.title AS session_title, s.type AS session_type
      FROM payments p
@@ -1001,5 +1008,87 @@ async function exportPayments(env) {
     p.paid_on, dollars(p.amount_cents), p.method, p.kind, p.client_name, p.session_title, p.session_type, p.note,
     localDateTime(p.created_at),
   ]);
-  return csvResponse(exportName("payments"), toCsv(headers, rows));
+  return toCsv(headers, rows);
+}
+
+async function inquiriesCsv(env) {
+  const { results } = await env.DB.prepare(
+    `SELECT i.*, s.title AS session_title, s.status AS session_status FROM inquiries i
+     LEFT JOIN sessions s ON s.id = i.session_id ORDER BY i.created_at DESC`
+  ).all();
+  const headers = ["Received (Central)", "Name", "Email", "Phone", "Instagram", "Session type", "Days asked for",
+    "Date notes", "Location", "People", "Usage", "How they found you", "Came from", "Message", "Status",
+    "Replied (Central)", "Session", "Session status"];
+  const days = (v) => { try { const a = JSON.parse(v || "[]"); return Array.isArray(a) ? a.join("; ") : String(v); } catch { return v; } };
+  const rows = results.map((i) => [
+    localDateTime(i.created_at), i.name, i.email, i.phone, i.instagram, i.session_type, days(i.preferred_dates),
+    i.date_notes, i.location, i.people_count, i.usage, i.referral, i.came_from, i.message, i.status,
+    localDateTime(i.replied_at), i.session_title, i.session_status,
+  ]);
+  return toCsv(headers, rows);
+}
+
+async function galleriesCsv(env) {
+  const { results } = await env.DB.prepare(
+    `SELECT g.*, (SELECT COUNT(*) FROM photos p WHERE p.gallery_id = g.id) AS photo_count,
+            (SELECT COUNT(*) FROM photos p WHERE p.gallery_id = g.id AND p.favorite = 1) AS favorite_count,
+            (SELECT group_concat(filename, '; ') FROM (SELECT filename FROM photos p WHERE p.gallery_id = g.id AND p.favorite = 1 ORDER BY filename)) AS favorites
+     FROM galleries g ORDER BY g.created_at DESC`
+  ).all();
+  const headers = ["Title", "Client", "Client email", "Link code", "Photos", "Favorites picked", "Favorite files",
+    "Favorites sent (Central)", "Client note", "Downloads allowed", "Expires", "Created (Central)"];
+  const rows = results.map((g) => [
+    g.title, g.client_name, g.client_email, g.slug, g.photo_count, g.favorite_count, g.favorites,
+    localDateTime(g.submitted_at), g.client_note, g.allow_downloads ? "yes" : "no", g.expires_at, localDateTime(g.created_at),
+  ]);
+  return toCsv(headers, rows);
+}
+
+const EXPORTS = {
+  "clients.csv": clientsCsv, "sessions.csv": sessionsCsv, "payments.csv": paymentsCsv,
+  "inquiries.csv": inquiriesCsv, "galleries.csv": galleriesCsv,
+};
+
+const README = (site, when) => `Your data from ${site}, exported ${when}.
+
+Spreadsheets (open in Excel, Numbers or Google Sheets):
+  clients.csv     everyone in your client list
+  sessions.csv    every session, with quoted / paid / balance
+  payments.csv    every payment you recorded
+  inquiries.csv   every inquiry from your website form
+  galleries.csv   every client gallery and the favorites they picked
+
+complete-backup.json is a full copy of the database (every field of every table).
+It can be used to restore the site or move your data somewhere else.
+
+Gallery photos are not included: they are copies of your own edited files.
+`;
+
+async function exportEverything(env) {
+  const files = [];
+  for (const [name, build] of Object.entries(EXPORTS)) files.push({ name, data: await build(env) });
+  const dump = await dumpAll(env);
+  files.push({ name: "complete-backup.json", data: JSON.stringify(dump, null, 1) });
+  files.unshift({ name: "README.txt", data: README(BRAND.businessName, todayChicago()) });
+  const zip = zipFiles(files);
+  return new Response(zip, {
+    headers: {
+      "content-type": "application/zip",
+      "content-disposition": `attachment; filename="${BRAND.fileSlug}-export-${todayChicago()}.zip"`,
+      "cache-control": "no-store",
+    },
+  });
+}
+
+async function downloadBackup(env, name) {
+  const key = backupKey(name);
+  const obj = key && (await env.PHOTOS.get(key));
+  if (!obj) return bad("Backup not found", 404);
+  return new Response(obj.body, {
+    headers: {
+      "content-type": "application/gzip",
+      "content-disposition": `attachment; filename="${BRAND.fileSlug}-backup-${name}"`,
+      "cache-control": "no-store",
+    },
+  });
 }
