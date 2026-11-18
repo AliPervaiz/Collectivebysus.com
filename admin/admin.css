@@ -784,3 +784,13 @@ a.att-main:hover { color: var(--ink); background: color-mix(in srgb, var(--prima
 .client-new { display: grid; gap: 0; border-left: 2px solid var(--primary-soft); padding-left: 12px; }
 .client-new[hidden], .client-existing[hidden] { display: none; }
 .client-new .field { margin-top: 8px; }
+
+/* Filter control ("Type: All types ▾"): one button, opens a menu */
+.filter-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px;
+  border: 1px solid transparent; background: none; font: inherit; color: var(--ink); cursor: pointer;
+}
+.filter-btn:hover, .filter-btn[aria-expanded="true"] { border-color: var(--line); background: var(--surface); }
+.filter-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.filter-btn .choice-prefix { margin-right: 0; }
+.filter-caret { font-size: 0.75rem; color: var(--muted); }

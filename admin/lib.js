@@ -394,6 +394,31 @@ export function pencilChoice({ items, value, ariaLabel, prefix = "", display, on
   return wrap;
 }
 
+/**
+ * A filter control: "Type: All types ▾". The whole label is one button that opens a menu.
+ * (Pencils are for editing a value; filters only change what's shown.)
+ */
+export function filterChoice({ items, value, ariaLabel, prefix = "", onChange, className = "" }) {
+  let current = value;
+  const labelOf = (v) => (items.find(([x]) => x === v) || [v, String(v ?? "")])[1];
+  const shown = el("span", { class: "choice-value" }, labelOf(current));
+  const btn = el("button", { class: "filter-btn", type: "button", "aria-label": `${ariaLabel}: ${labelOf(current)}` },
+    prefix ? el("span", { class: "choice-prefix" }, prefix) : null, shown, el("span", { class: "filter-caret", "aria-hidden": "true" }, "▾"));
+  const wrap = el("span", { class: `choice-edit ${className}`.trim() }, btn);
+  attachMenu(wrap, btn, {
+    items, ariaLabel, current: () => current,
+    onPick: (v) => {
+      if (v === current) return;
+      current = v;
+      shown.textContent = labelOf(v);
+      btn.setAttribute("aria-label", `${ariaLabel}: ${labelOf(v)}`);
+      if (onChange) onChange(v);
+    },
+  });
+  Object.defineProperty(wrap, "value", { get: () => current });
+  return wrap;
+}
+
 /* ---------- Sessions page: List / Month view ---------- */
 
 /** "list" or "month", from ?view= (remembered per browser) or the last choice. Defaults to list. */
