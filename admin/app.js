@@ -6,6 +6,7 @@ import { renderClients, renderClientDetail } from "./clients.js";
 import { renderSessions, renderSessionDetail } from "./sessions.js";
 import { renderSettings } from "./settings.js";
 import { renderCalendar } from "./calendar.js";
+import { renderInsights } from "./insights.js";
 import { sessionsView } from "./lib.js";
 
 const routes = [
@@ -17,6 +18,7 @@ const routes = [
   [/^\/s\/([\w-]+)/, "sessions", (m) => renderSessionDetail(m[1])],
   [/^\/galleries\/?$/, "galleries", () => renderGalleryList()],
   [/^\/g\/([\w-]+)/, "galleries", (m) => renderGalleryDetail(m[1])],
+  [/^\/insights\/?$/, "insights", (m, q) => renderInsights(q)],
   [/^\/settings\/?$/, "settings", () => renderSettings()],
 ];
 
