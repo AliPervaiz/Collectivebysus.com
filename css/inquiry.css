@@ -218,3 +218,6 @@ fieldset.is-invalid .inq-pills span { border-color: var(--danger); }
 }
 .inq-subfield input:focus { border-color: var(--primary); background: var(--surface); }
 @media (max-width: 520px) { .dp-cal { max-width: none; } }
+
+/* Blank calendar cells take the same space as day cells (6 rows every month = no jumping). */
+.dp-blank { aspect-ratio: 1; min-height: 38px; }

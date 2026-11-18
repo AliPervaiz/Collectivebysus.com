@@ -299,3 +299,6 @@ body.no-scroll { overflow: hidden; }
   .proof-bar .btn { white-space: nowrap; }
   body.has-bar { padding-bottom: 84px; }
 }
+
+/* Keep the footer below the screen while the gallery loads, so it doesn't jump down. */
+.proof-page #app { min-height: calc(100svh - 140px); }
