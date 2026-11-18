@@ -8,7 +8,7 @@
   --bg-alt:       #efeae3;   /* slightly deeper cream for sections */
   --ink:          #1f2a33;   /* deep slate ink, near-black */
   --ink-soft:     #4a5862;   /* secondary text */
-  --muted:        #8a8579;   /* captions, meta */
+  --muted:        #6b675e;   /* captions, meta (meets WCAG AA 4.5:1 on all backgrounds) */
   --line:         #d9d3c8;   /* hairline divider */
   --blue:         #4a6a85;   /* medium-dark slate blue (primary accent) */
   --blue-deep:    #2f4858;   /* darker blue on hover */
@@ -76,8 +76,8 @@ h1, h2, h3, h4 {
 
 h1 { font-size: clamp(2.2rem, 6vw, 4.5rem); line-height: 1.05; }
 h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); line-height: 1.15; }
-h3 { font-size: clamp(1.3rem, 2.2vw, 1.6rem); }
-h4 { font-size: 1.05rem; font-family: var(--sans); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--blue); }
+h3, .h3 { font-size: clamp(1.3rem, 2.2vw, 1.6rem); }
+h4, .h4 { font-size: 1.05rem; font-family: var(--sans); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--blue); }
 
 p { margin: 0 0 1em; color: var(--ink-soft); }
 
@@ -363,7 +363,7 @@ p { margin: 0 0 1em; color: var(--ink-soft); }
 .service-row.reverse { direction: rtl; }
 .service-row.reverse > * { direction: ltr; }
 .service-row .ph { aspect-ratio: 4 / 5; }
-.service-row h3 { font-size: clamp(1.6rem, 3vw, 2.2rem); }
+.service-row h3, .service-row .h3 { font-size: clamp(1.6rem, 3vw, 2.2rem); }
 .service-row .price {
   font-family: var(--serif);
   font-size: 1.1rem;
@@ -473,7 +473,7 @@ p { margin: 0 0 1em; color: var(--ink-soft); }
   gap: 40px;
   margin-bottom: 30px;
 }
-.footer-inner h4 {
+.footer-inner h4, .footer-inner .h4 {
   color: var(--blue);
   margin-bottom: 14px;
 }
@@ -525,3 +525,12 @@ p { margin: 0 0 1em; color: var(--ink-soft); }
 .legal strong { color: var(--ink); font-weight: 500; }
 .legal-updated { font-size: 0.85rem; color: var(--muted) !important; letter-spacing: 0.04em; }
 .footer-bottom a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+
+/* ----------- Accessibility ----------- */
+/* Links inside running text are underlined, so they don't rely on color alone. */
+p a:not(.btn), .legal a, .info-block p a { text-decoration: underline; text-underline-offset: 2px; }
+/* Clear keyboard focus everywhere (including on dark buttons). */
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+/* Comfortable tap targets for footer links. */
+.footer-inner li { padding: 0; }
+.footer-inner li a { display: inline-block; padding: 7px 0; }

@@ -114,7 +114,7 @@
       el("div", { class: "proof-status" },
         el("span", { class: "eyebrow" }, "Private Gallery"),
         el("h2", {}, title || "Your gallery"),
-        el("p", {}, `Enter the PIN ${owner} sent you to view your photos.`),
+        el("p", {}, "Enter the PIN I sent you to view your photos."),
         form, msg
       )
     );
@@ -126,8 +126,8 @@
   function renderGallery() {
     const g = state.gallery;
     const intro = g.max_selections
-      ? `Tap the heart on your ${g.max_selections} favorites. Your picks save as you go, so you can come back anytime. When you're happy, hit “Send my selections.”`
-      : "Tap the heart on the photos you love. Your picks save as you go, so you can come back anytime. When you're happy, hit “Send my selections.”";
+      ? `Tap the heart on your ${g.max_selections} favorites. Your picks save as you go, so you can come back anytime. When you're happy, send them to me with the button below.`
+      : "Tap the heart on the photos you love. Your picks save as you go, so you can come back anytime. When you're happy, send them to me with the button below.";
 
     const header = el("header", { class: "page-header proof-header" },
       el("span", { class: "eyebrow" }, g.client_name ? `Prepared for ${g.client_name}` : "Your Gallery"),
@@ -269,7 +269,7 @@
   document.getElementById("submitBtn").addEventListener("click", () => {
     const n = favCount();
     document.getElementById("submitSummary").textContent =
-      `You've chosen ${n} photo${n === 1 ? "" : "s"}. ${owner} will get your list right away.`;
+      `You've chosen ${n} photo${n === 1 ? "" : "s"}. I'll get your list right away.`;
     document.getElementById("submitNote").value = state.gallery.client_note || "";
     modal.hidden = false;
     document.getElementById("submitNote").focus();

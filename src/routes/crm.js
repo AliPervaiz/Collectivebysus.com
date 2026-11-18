@@ -7,7 +7,7 @@ import {
   oneOf, newId, nowIso,
 } from "../lib/util.js";
 import {
-  SESSION_TYPES, SESSION_STATUSES, CAN_POST, PAYMENT_METHODS, PAYMENT_KINDS, logActivity,
+  SESSION_TYPES, SESSION_STATUSES, normalizeStatus, CAN_POST, PAYMENT_METHODS, PAYMENT_KINDS, logActivity,
 } from "../lib/clients.js";
 import { getSettings, saveSettings } from "../lib/settings.js";
 import { computeAvailability, availabilityConfig, isDay } from "../lib/availability.js";
@@ -17,7 +17,7 @@ import { toCsv, csvResponse } from "../lib/csv.js";
 import { CONTRACT_DRAFT, MERGE_FIELDS } from "../lib/contract-draft.js";
 import { BRAND } from "../lib/brand.js";
 
-const ACTIVE_STATUSES = ["inquiry", "booked", "shot", "editing", "delivered"];
+const ACTIVE_STATUSES = ["inquiry", "booked", "editing"];
 const CHANNELS = ["instagram", "email", "text", "call", "in person"];
 const INQUIRY_STATUSES = ["new", "replied", "closed"];
 const TYPE_LABELS = { graduation: "Grad", engagement: "Engagement", event: "Event", portrait: "Portrait" };
@@ -285,9 +285,10 @@ async function dashboard(env) {
        WHERE i.status = 'new' ORDER BY i.created_at DESC`
     ).all(),
     querySessions(env, [
-      "s.status = 'shot'", "s.status_changed_at < ?",
+      // Shoot happened a while ago and there's still no gallery for it.
+      "s.status = 'editing'", "s.starts_at IS NOT NULL", "s.starts_at < ?",
       "NOT EXISTS (SELECT 1 FROM galleries g WHERE g.session_id = s.id)",
-    ], [shotCutoff], "ORDER BY s.status_changed_at ASC"),
+    ], [shotCutoff], "ORDER BY s.starts_at ASC"),
     env.DB.prepare(
       `SELECT g.id, g.title, g.client_id, g.session_id, g.submitted_at, g.client_name AS gallery_client_name,
          c.name AS linked_client_name, s.status AS session_status,
@@ -327,18 +328,18 @@ async function dashboard(env) {
   const inquiries = newInq.results;
   const inquiryItem = (kind) => (i) => item(kind,
     kind === "reply_overdue" ? `Reply to ${i.client_name || i.name}` : `New inquiry from ${i.client_name || i.name}`,
-    [i.session_type ? `${statusLabel(i.session_type)} inquiry` : "Inquiry", ago(i.created_at)].filter(Boolean).join(", "),
+    i.session_type ? `${statusLabel(i.session_type)} inquiry` : "Inquiry",
     i.created_at, { client_id: i.client_id, session_id: i.session_id, inquiry_id: i.id });
 
   const attention = [
     ...inquiries.filter((i) => i.created_at < replyCutoff).reverse().map(inquiryItem("reply_overdue")),
     ...inquiries.filter((i) => i.created_at >= replyCutoff).map(inquiryItem("new_inquiry")),
     ...needsGallery.map((s) => item("needs_gallery", `Make a gallery for ${s.client_name}`,
-      `${sessionName(s)} was shot ${ago(s.status_changed_at)}`, s.status_changed_at,
+      `${sessionName(s)}, shot ${new Date(s.starts_at).toLocaleDateString("en-US", { timeZone: BRAND.timeZone, month: "short", day: "numeric" })}`, s.starts_at,
       { client_id: s.client_id, session_id: s.id })),
     ...selections.results.map((g) => item("selections_waiting",
       `${g.linked_client_name || g.gallery_client_name || "A client"} sent favorites`,
-      `${g.title}: ${g.favorite_count} favorite${g.favorite_count === 1 ? "" : "s"}, submitted ${ago(g.submitted_at)}`,
+      `${g.title}: ${g.favorite_count} favorite${g.favorite_count === 1 ? "" : "s"}`,
       g.submitted_at, { client_id: g.client_id, session_id: g.session_id, gallery_id: g.id })),
     ...owed.map((s) => item("balance_owed", `${s.client_name} owes ${money(s.balance_cents)}`,
       `${sessionName(s)}: ${money(s.paid_cents)} of ${money(s.quoted_cents)} paid`, s.status_changed_at,
@@ -352,9 +353,7 @@ async function dashboard(env) {
     counts,
     attention,
     upcoming,
-    new_inquiries: inquiries.slice(0, 10).map(inquiryOut),
     owner_name: settings.owner_name || BRAND.ownerName,
-    settings_hint: { cal_link_set: !!String(settings.cal_link || "").trim() },
   });
 }
 
@@ -587,7 +586,7 @@ async function listSessions(env, url) {
     vals.push(...ACTIVE_STATUSES);
   } else if (status !== "all") {
     // One stage, or several separated by commas (e.g. "shot,editing").
-    const list = [...new Set(status.split(",").map((x) => x.trim()).filter(Boolean))];
+    const list = [...new Set(status.split(",").map((x) => normalizeStatus(x.trim())).filter(Boolean))];
     if (!list.length || list.some((x) => !oneOf(x, SESSION_STATUSES))) return bad("Unknown session status.");
     where.push(`s.status IN (${list.map(() => "?").join(", ")})`);
     vals.push(...list);
@@ -622,7 +621,7 @@ function sessionFields(body) {
     if (!f.type) return { error: "Session type must be graduation, engagement, event, or portrait." };
   }
   if ("status" in body) {
-    f.status = oneOf(body.status, SESSION_STATUSES);
+    f.status = oneOf(normalizeStatus(body.status), SESSION_STATUSES);
     if (!f.status) return { error: "Unknown session status." };
   }
   if ("title" in body) f.title = cleanLine(body.title, 200);

@@ -4,7 +4,9 @@ import {
   el, api, send, toast, startView, errorView, select, field, openModal,
   fmtDate, fmtDateTime, relTime, fmtMoney, parseMoney, centsToInput, toLocalInput, todayLocal, label,
   STATUS_LABELS, STATUSES, TYPE_LABELS, TYPES, METHOD_LABELS, KIND_LABELS,
-  postingBadge, minorBadge, statusPill, loadClients, pencilChoice, filterChoice, attachMenu, viewToggle,
+  postingBadge, minorBadge, statusPill, dangerZone, loadClients, pencilChoice, filterChoice, attachMenu, viewToggle,
+  typeUnlessInTitle,
+  CAN_POST_LABELS,
 } from "./lib.js";
 import { paymentsTable } from "./clients.js";
 import { openGalleryForm, galleryRow } from "./galleries.js";
@@ -91,7 +93,7 @@ export async function renderSessions(query = new URLSearchParams()) {
     STAGE_GROUPS.map(([k, l]) => el("a", {
       class: "chip" + (k === group ? " active" : ""),
       href: hrefFor(k === group ? "" : k, type), // click the selected tab again to show everything
-      "aria-pressed": String(k === group),
+      "aria-current": k === group ? "true" : null,
       title: k === group ? "Show all sessions" : null,
     }, l)));
   const typeSel = filterChoice({
@@ -119,7 +121,7 @@ function pipelineRow(s) {
   return el("div", { class: "row-card has-controls" },
     el("a", { class: "row-main", href: `#/s/${s.id}` },
       el("strong", {}, s.client_name || "Client"),
-      el("span", { class: "row-sub" }, [s.title, label(TYPE_LABELS, s.type)].filter(Boolean).join(" · ")),
+      el("span", { class: "row-sub" }, [s.title, typeUnlessInTitle(s)].filter(Boolean).join(" · ")),
       el("span", { class: "row-sub" }, s.starts_at ? fmtDateTime(s.starts_at) : "Date not set")
     ),
     // Posting permission and minor tags live on the session page, not the list.
@@ -141,8 +143,8 @@ export function openSessionForm(existing, preset = {}, { onSaved } = {}) {
     type: select(TYPES.map((t) => [t, TYPE_LABELS[t]]), s.type && TYPES.includes(s.type) ? s.type : "portrait"),
     title: el("input", { type: "text", maxlength: "200", value: s.title || "", placeholder: "e.g. Sarah · SMU grad" }),
     starts_at: el("input", { type: "datetime-local", value: initialStart }),
-    hours: el("input", { type: "number", min: "0", step: "0.25", inputmode: "decimal", value: s.hours ?? "", placeholder: "1.5" }),
-    location: el("input", { type: "text", maxlength: "300", value: s.location || "", placeholder: "Klyde Warren Park" }),
+    hours: el("input", { type: "number", min: "0", step: "0.25", inputmode: "decimal", value: s.hours ?? "", placeholder: "e.g. 1.5" }),
+    location: el("input", { type: "text", maxlength: "300", value: s.location || "", placeholder: "e.g. Klyde Warren Park" }),
     status: select(statusOptions, s.status || (preset.inquiry_id ? "inquiry" : "booked")),
     quoted: el("input", { type: "text", inputmode: "decimal", value: centsToInput(s.quoted_cents), placeholder: "$" }),
     notes: el("textarea", { rows: "3", maxlength: "4000" }, s.notes || ""),
@@ -154,6 +156,8 @@ export function openSessionForm(existing, preset = {}, { onSaved } = {}) {
     email: el("input", { type: "email", maxlength: "200", autocomplete: "off", autocapitalize: "off", placeholder: "Optional" }),
     phone: el("input", { type: "tel", maxlength: "40", autocomplete: "off", placeholder: "Optional" }),
     instagram: el("input", { type: "text", maxlength: "60", autocomplete: "off", autocapitalize: "off", placeholder: "@handle, optional" }),
+    can_post: select(Object.entries(CAN_POST_LABELS), "ask", { "aria-label": "Posting permission" }),
+    is_minor: el("input", { type: "checkbox" }),
   };
   let clientMode = "existing";
   let createdClientId = null; // reuse if the session save fails and she submits again
@@ -164,7 +168,9 @@ export function openSessionForm(existing, preset = {}, { onSaved } = {}) {
   const existingWrap = el("div", { class: "client-existing" });
   const newWrap = el("div", { class: "client-new", hidden: true },
     el("div", { class: "field-row" }, field("Name *", nc.name), field("Email", nc.email)),
-    el("div", { class: "field-row" }, field("Phone", nc.phone), field("Instagram", nc.instagram)));
+    el("div", { class: "field-row" }, field("Phone", nc.phone), field("Instagram", nc.instagram)),
+    el("div", { class: "field-row" }, field("Posting photos", nc.can_post),
+      el("label", { class: "check", style: "align-self:end;margin-bottom:12px" }, nc.is_minor, "Under 18")));
   function setClientMode(m) {
     clientMode = m;
     modeToggle.querySelectorAll("button").forEach((b) => {
@@ -190,6 +196,7 @@ export function openSessionForm(existing, preset = {}, { onSaved } = {}) {
     try {
       const res = await send("/clients", "POST", {
         name, email: nc.email.value.trim(), phone: nc.phone.value.trim(), instagram: nc.instagram.value.trim(), source: "added in admin",
+        can_post: nc.can_post.value, is_minor: nc.is_minor.checked,
       });
       createdClientId = res.client.id;
       clientNote = "new";
@@ -204,7 +211,7 @@ export function openSessionForm(existing, preset = {}, { onSaved } = {}) {
 
   const { close } = openModal({
     title: existing ? "Edit session" : "New session",
-    submitLabel: existing ? "Save" : "Create session",
+    submitLabel: existing ? "Save changes" : "Create session",
     children: [
       existing
         ? el("p", { class: "admin-muted small-text", style: "margin:0" }, `Client: ${existing.client_name || ""}`)
@@ -280,22 +287,13 @@ export async function renderSessionDetail(id, { refresh = false } = {}) {
 
   const head = el("div", { class: "admin-head" },
     el("div", {},
-      el("span", { class: "eyebrow" }, label(TYPE_LABELS, s.type) + " session"),
       el("h1", {}, s.title || `${c.name || s.client_name || "Client"} · ${label(TYPE_LABELS, s.type)}`),
       el("p", { class: "sub" }, "For ", el("a", { href: `#/c/${s.client_id}` }, c.name || s.client_name || "client"),
         " ", postingBadge(c.can_post || s.client_can_post), " ", minorBadge(c.is_minor ?? s.client_is_minor))
     ),
     el("div", { class: "btn-row", style: "margin:0" },
       el("span", { class: "inline-label" }, el("span", {}, "Stage"), stage),
-      el("button", { class: "btn small", type: "button", onclick: () => openSessionForm({ ...s, client_name: c.name || s.client_name }, {}, { onSaved: reload }) }, "Edit"),
-      el("button", {
-        class: "btn small danger", type: "button",
-        onclick: async () => {
-          if (!confirm("Delete this session and its payments? Linked galleries stay. This can't be undone.")) return;
-          try { await send(`/sessions/${s.id}`, "DELETE"); toast("Session deleted"); location.hash = `#/c/${s.client_id}`; }
-          catch (ex) { toast(ex.message); }
-        },
-      }, "Delete")
+      el("button", { class: "btn small", type: "button", onclick: () => openSessionForm({ ...s, client_name: c.name || s.client_name }, {}, { onSaved: reload }) }, "Edit")
     )
   );
 
@@ -303,7 +301,6 @@ export async function renderSessionDetail(id, { refresh = false } = {}) {
     kv("When", s.starts_at ? fmtDateTime(s.starts_at) : "Not set"),
     kv("Hours", s.hours != null && s.hours !== "" ? String(s.hours) : "—"),
     kv("Location", s.location || "—"),
-    kv("Stage", label(STATUS_LABELS, s.status) + (s.status_changed_at ? ` · since ${relTime(s.status_changed_at)}` : "")),
     s.cal_booking_uid ? kv("Booked via", "Cal.com") : null,
     kv("Created", fmtDate(s.created_at))
   );
@@ -323,10 +320,10 @@ export async function renderSessionDetail(id, { refresh = false } = {}) {
   };
 
   const main = el("div", {},
-    el("div", { class: "panel" }, el("h4", {}, "Details"), details,
+    el("div", { class: "panel" }, el("h2", { class: "h4" }, "Details"), details,
       s.notes ? el("div", { class: "note-box" }, s.notes) : null),
     el("div", { class: "panel" },
-      el("h4", {}, "Payments"),
+      el("h2", { class: "h4" }, "Payments"),
       balance,
       payments.length ? paymentsTable(payments, { onDelete: delPayment, showSession: false }) : el("p", { class: "admin-muted small-text" }, "No payments recorded yet."),
       payForm
@@ -335,10 +332,10 @@ export async function renderSessionDetail(id, { refresh = false } = {}) {
 
   const side = el("aside", {},
     el("div", { class: "panel" },
-      el("h4", {}, "Galleries"),
+      el("h2", { class: "h4" }, "Galleries"),
       galleries.length
         ? el("div", { class: "row-list" }, galleries.map((g) => el("div", { class: "linked-gal" },
-            galleryRow(g),
+            galleryRow(g, { context: "session" }),
             el("button", {
               class: "linklike small-text", type: "button",
               onclick: async () => {
@@ -347,7 +344,7 @@ export async function renderSessionDetail(id, { refresh = false } = {}) {
               },
             }, "Unlink from session")
           )))
-        : el("p", { class: "admin-muted small-text" }, s.status === "shot" || s.status === "editing" ? "No gallery yet. Create one when the edits are ready." : "No gallery linked yet."),
+        : el("p", { class: "admin-muted small-text" }, s.status === "editing" ? "No gallery yet. Create one when the edits are ready." : "No gallery linked yet."),
       el("div", { class: "btn-row" },
         el("button", {
           class: "btn small solid", type: "button",
@@ -356,7 +353,7 @@ export async function renderSessionDetail(id, { refresh = false } = {}) {
             title: s.title || `${c.name || s.client_name || ""} · ${label(TYPE_LABELS, s.type)}`.replace(/^ · /, ""),
             client_name: c.name || s.client_name || "", client_email: c.email || "",
           }),
-        }, "+ New gallery")
+        }, "New gallery")
       ),
       linkPicker(s, galleries, reload)
     )
@@ -366,7 +363,12 @@ export async function renderSessionDetail(id, { refresh = false } = {}) {
     el("a", { class: "back-link", href: "#/sessions" }, "← All sessions"),
     head,
     c.can_post === "no" ? el("div", { class: "perm-banner perm-no" }, postingBadge("no", { large: true }), el("span", {}, "Don't share photos from this session.")) : null,
-    el("div", { class: "detail-grid" }, main, side)
+    el("div", { class: "detail-grid" }, main, side),
+    dangerZone("Delete this session", async () => {
+      if (!confirm("Delete this session and its payments? Linked galleries stay. This can't be undone.")) return;
+      try { await send(`/sessions/${s.id}`, "DELETE"); toast("Session deleted"); location.hash = `#/c/${s.client_id}`; }
+      catch (ex) { toast(ex.message); }
+    })
   );
 }
 

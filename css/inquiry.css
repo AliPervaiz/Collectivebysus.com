@@ -37,7 +37,7 @@
 .inq-field > span,
 .inq-field > legend,
 .inq-label {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--primary);
@@ -211,7 +211,7 @@ fieldset.is-invalid .inq-pills span { border-color: var(--danger); }
 .dp-msg { margin: 0; font-size: 0.85rem; color: var(--amber); min-height: 0; }
 .dp-msg:empty { display: none; }
 .inq-subfield { display: flex; flex-direction: column; gap: 6px; margin-top: 16px; }
-.inq-subfield > span { font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.inq-subfield > span { font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
 .inq-subfield input {
   width: 100%; font: inherit; font-size: 16px; padding: 12px 14px; border: 1px solid var(--line);
   background: var(--bg); color: var(--ink); border-radius: 0; outline: none;

@@ -3,7 +3,10 @@
 import { newId, nowIso, cleanEmail } from "./util.js";
 
 export const SESSION_TYPES = ["graduation", "engagement", "event", "portrait"];
-export const SESSION_STATUSES = ["inquiry", "booked", "shot", "editing", "delivered", "done", "lost", "archived"];
+export const SESSION_STATUSES = ["inquiry", "booked", "editing", "done", "archived"];
+// Retired stages (2026-11-18) and where they went. Accepted on input so old links/integrations keep working.
+export const LEGACY_STATUS = { shot: "editing", delivered: "done", lost: "archived" };
+export const normalizeStatus = (v) => (typeof v === "string" && LEGACY_STATUS[v]) || v;
 export const CAN_POST = ["yes", "no", "ask"];
 export const PAYMENT_METHODS = ["venmo", "zelle", "cash", "card", "other"];
 export const PAYMENT_KINDS = ["retainer", "balance", "other"];

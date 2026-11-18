@@ -178,7 +178,7 @@ async function bookingRescheduled(env, payload) {
   const now = nowIso();
   const { starts_at, ends_at, hours } = bookingTimes(payload);
   const location = bookingLocation(payload);
-  const reopen = session.status === "lost";
+  const reopen = session.status === "archived" || session.status === "lost";
   // Another row might already hold the new uid (e.g. a duplicate CREATED); avoid the unique clash.
   const holder = newUid && newUid !== session.cal_booking_uid ? await findByUid(env, newUid) : null;
   const uidToSet = holder ? session.cal_booking_uid : newUid || session.cal_booking_uid;
@@ -186,8 +186,8 @@ async function bookingRescheduled(env, payload) {
   await env.DB.prepare(
     `UPDATE sessions SET cal_booking_uid = ?, starts_at = COALESCE(?, starts_at), ends_at = COALESCE(?, ends_at),
        hours = COALESCE(?, hours), location = COALESCE(?, location),
-       status = CASE WHEN status = 'lost' THEN 'booked' ELSE status END,
-       status_changed_at = CASE WHEN status = 'lost' THEN ? ELSE status_changed_at END,
+       status = CASE WHEN status IN ('lost', 'archived') THEN 'booked' ELSE status END,
+       status_changed_at = CASE WHEN status IN ('lost', 'archived') THEN ? ELSE status_changed_at END,
        updated_at = ? WHERE id = ?`
   ).bind(uidToSet, starts_at, ends_at, hours, location, now, now, session.id).run();
 
@@ -205,7 +205,7 @@ async function bookingCancelled(env, payload) {
   const reason = cleanText(payload.cancellationReason, 500);
   if (session.status === "inquiry" || session.status === "booked") {
     await env.DB.prepare(
-      "UPDATE sessions SET status = 'lost', status_changed_at = ?, updated_at = ? WHERE id = ?"
+      "UPDATE sessions SET status = 'archived', status_changed_at = ?, updated_at = ? WHERE id = ?"
     ).bind(now, now, session.id).run();
   }
   await logActivity(env, {

@@ -17,7 +17,7 @@
   <nav class="site-nav">
     <div class="nav-inner">
       <a href="index.html" class="brand">Collective by Sus<span>.</span></a>
-      <button class="nav-toggle" aria-label="Toggle menu" onclick="document.getElementById('navLinks').classList.toggle('open')">
+      <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks" onclick="this.setAttribute('aria-expanded', document.getElementById('navLinks').classList.toggle('open'))">
         <span></span><span></span><span></span>
       </button>
       <ul class="nav-links" id="navLinks">
@@ -41,7 +41,7 @@
     <div class="container">
       <div class="about-grid">
         <div class="ph cutout">
-          <img src="Photos/Hero/Susiphoto_transparent.png" alt="Susi, photographer" />
+          <img fetchpriority="high" decoding="async" src="/img/opt/hero-susiphoto-transparent-1600.webp" srcset="/img/opt/hero-susiphoto-transparent-800.webp 800w, /img/opt/hero-susiphoto-transparent-1600.webp 853w" sizes="(max-width: 720px) 100vw, 50vw" alt="Susi, photographer" />
         </div>
 
         <div class="about-text">
@@ -58,13 +58,13 @@
             photographs that feel like you, that hold up a decade from now, and that you actually want to print.
           </p>
 
-          <h4 style="margin-top:40px;">A Few Things I Love</h4>
+          <h2 class="h4" style="margin-top:40px;">A Few Things I Love</h2>
           <p>
             Overcast mornings · warm kitchen light · linen and wool · second-hand bookshops ·
             sparkling water on long drives · the half-second after the laugh.
           </p>
 
-          <h4 style="margin-top:30px;">Approach</h4>
+          <h2 class="h4" style="margin-top:30px;">Approach</h2>
           <p>
             I shoot a thoughtful mix of film and digital, lean into natural light, and keep direction gentle.
             You don't need to be "good in front of the camera." That's my job. Come as you are.
@@ -92,7 +92,7 @@
           <p>Engagement, event, and grad photography rooted in natural light and quiet storytelling.</p>
         </div>
         <div>
-          <h4>Explore</h4>
+          <h2 class="h4">Explore</h2>
           <ul>
             <li><a href="about.html">About</a></li>
             <li><a href="portfolio.html">Portfolio</a></li>
@@ -101,7 +101,7 @@
           </ul>
         </div>
         <div>
-          <h4>Connect</h4>
+          <h2 class="h4">Connect</h2>
           <ul>
             <li><a href="mailto:contact@collectivebysus.com">contact@collectivebysus.com</a></li>
             <li><a href="https://www.instagram.com/collectivebysus" target="_blank" rel="noopener">Instagram</a></li>

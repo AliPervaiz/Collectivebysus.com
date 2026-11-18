@@ -18,7 +18,7 @@
   <nav class="site-nav">
     <div class="nav-inner">
       <a href="index.html" class="brand">Collective by Sus<span>.</span></a>
-      <button class="nav-toggle" aria-label="Toggle menu" onclick="document.getElementById('navLinks').classList.toggle('open')">
+      <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks" onclick="this.setAttribute('aria-expanded', document.getElementById('navLinks').classList.toggle('open'))">
         <span></span><span></span><span></span>
       </button>
       <ul class="nav-links" id="navLinks">
@@ -67,7 +67,7 @@
               <label><input type="radio" name="session_type" value="event" /><span>Event</span></label>
               <label><input type="radio" name="session_type" value="portrait" /><span>Portrait / Other</span></label>
             </div>
-            <p class="inq-note">Grads under 18: a parent or guardian will need to sign off before the session.</p>
+            <p class="inq-note" data-show-for="graduation" hidden>Grads under 18: a parent or guardian will need to sign off before the session.</p>
           </fieldset>
 
           <fieldset class="inq-field inq-wide inq-days">
@@ -151,7 +151,7 @@
         </div>
 
         <div class="ph cutout">
-          <img src="Photos/Hero/Susiphoto_transparent.png" alt="Susi, photographer" />
+          <img loading="lazy" decoding="async" src="/img/opt/hero-susiphoto-transparent-1600.webp" srcset="/img/opt/hero-susiphoto-transparent-800.webp 800w, /img/opt/hero-susiphoto-transparent-1600.webp 853w" sizes="(max-width: 720px) 100vw, 50vw" alt="Susi, photographer" />
         </div>
       </div>
     </div>
@@ -173,7 +173,7 @@
           <p>Engagement, event, and grad photography rooted in natural light and quiet storytelling.</p>
         </div>
         <div>
-          <h4>Explore</h4>
+          <h2 class="h4">Explore</h2>
           <ul>
             <li><a href="about.html">About</a></li>
             <li><a href="portfolio.html">Portfolio</a></li>
@@ -182,7 +182,7 @@
           </ul>
         </div>
         <div>
-          <h4>Connect</h4>
+          <h2 class="h4">Connect</h2>
           <ul>
             <li><a href="mailto:contact@collectivebysus.com">contact@collectivebysus.com</a></li>
             <li><a href="https://www.instagram.com/collectivebysus" target="_blank" rel="noopener">Instagram</a></li>

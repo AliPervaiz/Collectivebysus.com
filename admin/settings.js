@@ -17,7 +17,7 @@ export async function renderSettings() {
   catch (err) { return mount(...errorView(err)); }
 
   const head = el("div", { class: "admin-head" },
-    el("div", {}, el("span", { class: "eyebrow" }, "Studio"), el("h1", {}, "Settings"))
+    el("div", {}, el("h1", {}, "Settings"))
   );
 
   mount(
@@ -33,7 +33,7 @@ export async function renderSettings() {
     const c = await api("/contracts");
     if (mount.current() && slot.isConnected) slot.replaceWith(contractEditor(c, data.settings || {}));
   } catch (err) {
-    if (slot.isConnected) slot.replaceChildren(el("div", { class: "panel" }, el("h4", {}, "Contract templates"), ...errorView(err)));
+    if (slot.isConnected) slot.replaceChildren(el("div", { class: "panel" }, el("h2", { class: "h4" }, "Contract templates"), ...errorView(err)));
   }
 }
 
@@ -74,7 +74,7 @@ function settingsForm(data) {
     el("label", { class: "day-toggle" }, el("input", { type: "checkbox", value: String(i), checked: shootDays.has(String(i)) }), el("span", {}, name)));
 
   const group = (title, intro, ...children) => el("fieldset", { class: "panel settings-group" },
-    el("legend", {}, el("h4", { style: "margin:0" }, title)),
+    el("legend", {}, el("h2", { class: "h4", style: "margin:0" }, title)),
     intro ? el("p", { class: "admin-muted small-text", style: "margin:0" }, intro) : null,
     ...children);
 
@@ -114,7 +114,7 @@ function settingsForm(data) {
       field("Pricing note", f.price_note),
       el("div", { class: "field-row" },
         field("Hourly rate", f.hourly_rate_text),
-        field("Retainer ($)", f.retainer, f.retainer.value ? `Currently ${fmtMoney(s.retainer_cents)}` : "Leave blank for no retainer")),
+        field("Retainer ($)", f.retainer, "Leave blank for no retainer")),
       field("Retainer note", f.retainer_note),
       field("Turnaround", f.turnaround),
       field("Reply promise", f.reply_promise)
@@ -154,7 +154,7 @@ function settingsForm(data) {
 function exportsPanel() {
   const link = (file, text) => el("a", { class: "btn small", href: `/api/admin/export/${file}`, download: file }, text);
   return el("div", { class: "panel" },
-    el("h4", {}, "Export"),
+    el("h2", { class: "h4" }, "Export"),
     el("p", { class: "admin-muted small-text" }, "Download spreadsheets (CSV) of everything. Opens in Excel, Numbers or Google Sheets."),
     el("div", { class: "btn-row" }, link("clients.csv", "Clients"), link("sessions.csv", "Sessions"), link("payments.csv", "Payments"))
   );
@@ -290,7 +290,7 @@ function contractEditor(data, settings) {
   if (templates[0]) edit(templates[0]);
 
   return el("section", { class: "panel contracts" },
-    el("h4", {}, "Contract templates"),
+    el("h2", { class: "h4" }, "Contract templates"),
     el("div", { class: "draft-banner", role: "note" },
       el("strong", {}, "Draft — have this reviewed before using. Not legal advice."),
       el("span", {}, " Client signing isn't built yet.")),
