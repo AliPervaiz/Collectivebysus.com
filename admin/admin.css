@@ -833,3 +833,51 @@ a.att-main:hover { color: var(--ink); background: color-mix(in srgb, var(--prima
 .cal-day.is-today .cal-num, .cal-day.is-today.is-off .cal-num, .cal-day.is-today.is-past .cal-num { color: var(--on-primary); }
 .cal-ev.ev-booked .cal-ev-meta { color: var(--on-primary); opacity: 0.9; }
 .ag-day .cal-ev.past { opacity: 1; }
+
+/* ---------- Insights ---------- */
+.nav-icon { font-size: 1.05rem; letter-spacing: 0; }
+.ins-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+.ins-tiles.small { grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; }
+@media (max-width: 860px) { .ins-tiles, .ins-tiles.small { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ins-tile { background: var(--surface); border: 1px solid var(--line); padding: 16px 18px; display: grid; gap: 4px; min-width: 0; }
+.ins-tiles.small .ins-tile { background: var(--bg); }
+.ins-tile-label { font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.ins-tile-value { font-family: var(--serif); font-weight: 400; font-size: clamp(1.7rem, 3vw, 2.3rem); line-height: 1.1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.ins-tile-sub { font-size: 0.82rem; color: var(--ink-soft); }
+
+.ins-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 980px) { .ins-grid { grid-template-columns: 1fr; } }
+.ins-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 860px) { .ins-two { grid-template-columns: 1fr; } }
+.ins-chart { margin-bottom: 14px; min-width: 0; }
+.ins-chart-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.ins-chart-head .h4 { margin: 0; }
+.ins-chart-note { font-size: 0.8rem; color: var(--muted); }
+
+/* Vertical bars: thin, 2px gaps, 4px rounded tops anchored to the baseline; recessive axis */
+.ins-plot { position: relative; padding-top: 18px; }
+.ins-max { position: absolute; top: 0; left: 0; font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ins-bars { display: flex; align-items: flex-end; gap: 2px; height: 120px; border-bottom: 1px solid var(--line); }
+.ins-bar { flex: 1 1 0; height: 100%; display: flex; align-items: flex-end; min-width: 0; cursor: default; outline-offset: 2px; }
+.ins-bar-fill { display: block; width: 100%; background: var(--primary); border-radius: 4px 4px 0 0; min-height: 0; transition: opacity 0.15s ease; }
+.ins-bar:hover .ins-bar-fill, .ins-bar:focus .ins-bar-fill { opacity: 0.8; }
+.ins-axis { display: flex; gap: 2px; margin-top: 6px; }
+.ins-axis span { flex: 1 1 0; min-width: 0; font-size: 0.75rem; color: var(--muted); white-space: nowrap; overflow: visible; }
+
+/* Horizontal bars */
+.ins-hbars { display: grid; gap: 10px; }
+.ins-hrow { display: grid; grid-template-columns: minmax(80px, 34%) minmax(0, 1fr) auto; grid-template-areas: "name track val" "name detail detail"; column-gap: 12px; row-gap: 2px; align-items: center; outline-offset: 2px; }
+.ins-hname { grid-area: name; font-size: 0.9rem; color: var(--ink); overflow-wrap: anywhere; }
+.ins-htrack { grid-area: track; height: 10px; background: var(--bg-alt); border-radius: 0 4px 4px 0; overflow: hidden; }
+.ins-hfill { display: block; height: 100%; background: var(--primary); border-radius: 0 4px 4px 0; }
+.ins-hval { grid-area: val; font-variant-numeric: tabular-nums; font-size: 0.9rem; color: var(--ink); }
+.ins-hdetail { grid-area: detail; font-size: 0.8rem; color: var(--muted); }
+
+.ins-table { margin-top: 12px; font-size: 0.85rem; }
+.ins-table summary { cursor: pointer; color: var(--ink-soft); font-size: 0.8rem; }
+.ins-table table { width: 100%; border-collapse: collapse; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.ins-table th, .ins-table td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+.ins-table td { text-align: right; }
+
+.ins-tip { position: fixed; z-index: 400; background: var(--ink); color: var(--bg); font-size: 0.8rem; padding: 6px 10px; pointer-events: none; white-space: nowrap; box-shadow: 0 6px 18px rgba(0,0,0,0.18); }
+@media (prefers-reduced-motion: reduce) { .ins-bar-fill { transition: none; } }

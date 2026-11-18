@@ -11,6 +11,7 @@ import {
 } from "../lib/clients.js";
 import { getSettings, saveSettings } from "../lib/settings.js";
 import { computeAvailability, availabilityConfig, isDay } from "../lib/availability.js";
+import { insights } from "../lib/insights.js";
 import { adminGallery } from "../lib/galleries.js";
 import { emailStatus } from "../lib/email.js";
 import { toCsv, csvResponse } from "../lib/csv.js";
@@ -33,6 +34,7 @@ export async function handleCrm(request, env, parts, ctx, admin) {
   const n = parts.length;
 
   if (section === "dashboard" && n === 1 && method === "GET") return dashboard(env);
+  if (section === "insights" && n === 1 && method === "GET") return json(await insights(env, new URL(request.url)));
 
   if (section === "clients") {
     if (n === 1 && method === "GET") return listClients(env, new URL(request.url));

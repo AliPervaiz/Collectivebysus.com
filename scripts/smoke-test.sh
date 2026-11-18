@@ -230,6 +230,15 @@ expect "client activity has favorites" 200 "$B/api/admin/clients/$CID"
 has "favorites logged" "favorite"
 expect "dashboard shows selections waiting" 200 "$B/api/admin/dashboard"
 has "selections_waiting item" "selections_waiting"
+expect "insights (12 months)" 200 "$B/api/admin/insights"
+has "insights totals" '"booking_rate"'
+has "insights sources" '"sources"'
+has "insights gallery follow-through" '"favorites_sent"'
+expect "insights all time" 200 "$B/api/admin/insights?range=all"
+has "insights all-time label" '"All time"'
+expect "insights bogus range falls back" 200 "$B/api/admin/insights?range=zzz"
+has "fallback is 12 months" '"Last 12 months"'
+expect "insights admin-only" 403 -H "Host: fieldnote.example" "$B/api/admin/insights"
 expect "admin gallery detail shows posting permission" 200 "$B/api/admin/galleries/$GID"
 has "posting permission on gallery" "can_post"
 # PIN lockout: parallel wrong guesses use up the budget; then even the right PIN is refused.
