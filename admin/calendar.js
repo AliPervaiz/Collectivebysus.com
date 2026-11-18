@@ -249,7 +249,7 @@ export async function renderCalendar(query = new URLSearchParams()) {
 
   const head = el("div", { class: "admin-head" },
     el("div", {},
-      el("span", { class: "eyebrow" }, "Sessions · Month"),
+      el("span", { class: "eyebrow" }, "Sessions"),
       el("h1", {}, title),
       el("p", { class: "sub" }, `${plural(inMonth.length, "session")} this month · ${upcoming} upcoming`)
     ),

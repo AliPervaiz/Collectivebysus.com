@@ -82,7 +82,7 @@ export async function renderSessions(query = new URLSearchParams()) {
   };
 
   const head = el("div", { class: "admin-head" },
-    el("div", {}, el("span", { class: "eyebrow" }, "Pipeline"), el("h1", {}, "Sessions")),
+    el("div", {}, el("h1", {}, "Sessions")),
     el("div", { class: "cal-controls" },
       viewToggle("list", hrefFor(group, type), "#/sessions?view=month"),
       el("button", { class: "btn solid", type: "button", onclick: () => openSessionForm() }, "New session"))

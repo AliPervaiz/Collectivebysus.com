@@ -433,5 +433,5 @@ export function sessionsView(query) {
 export function viewToggle(current, listHref, monthHref) {
   const link = (v, text, href) => el("a", { class: current === v ? "on" : "", href, "aria-current": current === v ? "true" : null }, text);
   return el("div", { class: "view-toggle", role: "group", "aria-label": "View" },
-    link("list", "List", listHref), link("month", "Month", monthHref));
+    link("list", "List", listHref), link("month", "Calendar", monthHref));
 }
