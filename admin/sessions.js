@@ -122,9 +122,8 @@ function pipelineRow(s) {
       el("span", { class: "row-sub" }, [s.title, label(TYPE_LABELS, s.type)].filter(Boolean).join(" · ")),
       el("span", { class: "row-sub" }, s.starts_at ? fmtDateTime(s.starts_at) : "Date not set")
     ),
+    // Posting permission and minor tags live on the session page, not the list.
     el("div", { class: "row-badges" },
-      postingBadge(s.client_can_post),
-      minorBadge(s.client_is_minor),
       owed,
       stage
     )
