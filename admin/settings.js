@@ -6,6 +6,9 @@ import {
 
 // Contracts are on hold (decided 2026-11-16). Flip to true to show the template editor again.
 const SHOW_CONTRACTS = false;
+// Client auto-reply email and policy drafts are out of scope for now (saved values are kept).
+const SHOW_AUTO_REPLY = false;
+const SHOW_POLICIES = false;
 
 export async function renderSettings() {
   const mount = startView();
@@ -123,21 +126,21 @@ function settingsForm(data) {
         field("Days a client can pick", f.max_picked_days)),
       field("Show this many days ahead", f.availability_days_ahead)
     ),
-    group("Reminders", "When the dashboard should nudge you.",
+    group("Reminders & alerts", "When the dashboard should nudge you, and how you hear about new inquiries.",
       el("div", { class: "field-row" },
         field("Reply to inquiries within (hours)", f.inquiry_reply_hours),
-        field("Gallery due after a shoot (days)", f.shot_no_gallery_days))
+        field("Gallery due after a shoot (days)", f.shot_no_gallery_days)),
+      statusLine(!!email.owner, `Inquiry alerts to you: on${email.owner_via ? ` (via ${email.owner_via})` : ""}.`, "Inquiry alerts to you: not configured yet."),
+      statusLine(!!data.turnstile, "Spam protection (Turnstile): on.", "Spam protection (Turnstile): off. Honeypot and rate limits still apply.")
     ),
-    group("Auto-reply", "An automatic thank-you email sent to people who fill out your inquiry form.",
+    !SHOW_AUTO_REPLY ? null : group("Auto-reply", "An automatic thank-you email sent to people who fill out your inquiry form.",
       el("label", { class: "check" }, f.auto_reply_enabled, "Send an auto-reply to new inquiries"),
       field("Auto-reply message", f.auto_reply_text, "Merge fields: {{first_name}} and {{business_name}}"),
       email.client
         ? statusLine(true, `Client email: configured${email.client_via ? ` (via ${email.client_via})` : ""}.`, "")
-        : statusLine(false, "", "Client email isn't configured, so the auto-reply won't send until RESEND_API_KEY (or the Email Service binding) is set."),
-      statusLine(!!email.owner, `Inquiry alerts to you: on${email.owner_via ? ` (via ${email.owner_via})` : ""}.`, "Inquiry alerts to you: not configured yet."),
-      statusLine(!!data.turnstile, "Spam protection (Turnstile): on.", "Spam protection (Turnstile): off. Honeypot and rate limits still apply.")
+        : statusLine(false, "", "Client email isn't configured, so the auto-reply won't send until RESEND_API_KEY (or the Email Service binding) is set.")
     ),
-    group("Policies (drafts)", "Your own notes for now. Have these reviewed before sharing with clients.",
+    !SHOW_POLICIES ? null : group("Policies (drafts)", "Your own notes for now. Have these reviewed before sharing with clients.",
       field("Cancellation & rescheduling", f.policy_cancellation),
       field("Weather", f.policy_weather),
       field("Posting & usage", f.policy_posting)
