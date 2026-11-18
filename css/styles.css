@@ -534,3 +534,31 @@ p a:not(.btn), .legal a, .info-block p a { text-decoration: underline; text-unde
 /* Comfortable tap targets for footer links. */
 .footer-inner li { padding: 0; }
 .footer-inner li a { display: inline-block; padding: 7px 0; }
+
+/* ----------- First screen fits without scrolling (laptops/desktops) ----------- */
+:root { --nav-h: 76px; }
+@media (min-width: 821px) {
+  .hero { min-height: calc(100svh - var(--nav-h)); display: flex; align-items: center; padding: 24px 0; }
+  .hero > .container { width: 100%; }
+  .hero-image { aspect-ratio: auto; height: min(calc(100svh - var(--nav-h) - 48px), 760px); }
+
+  .about-hero { padding-top: 32px; }
+  .about-grid .ph { aspect-ratio: auto; height: min(calc(100svh - var(--nav-h) - 64px), 720px); position: sticky; top: calc(var(--nav-h) + 24px); }
+}
+@media (max-width: 820px) {
+  .hero { padding: 36px 0 24px; }
+  .hero-image { aspect-ratio: auto; height: 52svh; }
+  .about-hero { padding-top: 28px; }
+  .about-grid .ph { aspect-ratio: auto; height: 40svh; }
+}
+.about-intro { margin-bottom: 36px; }
+.about-intro h1 { margin: 6px 0 0.3em; }
+.about-intro .lead { font-size: 1.15rem; color: var(--ink-soft); max-width: 34em; }
+.about-intro .accent-line { width: 60px; height: 1px; background: var(--primary); margin-top: 24px; }
+
+/* Featured: the tall photo fills both rows (no blank space under it) */
+.featured-grid .tall { aspect-ratio: auto; }
+@media (max-width: 820px) {
+  /* Two columns on phones: the tall photo goes full width on top, then a 2x2 grid. */
+  .featured-grid .tall { grid-column: 1 / -1; aspect-ratio: 4 / 3; }
+}
