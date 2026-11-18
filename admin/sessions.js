@@ -4,7 +4,7 @@ import {
   el, api, send, toast, startView, errorView, select, field, openModal,
   fmtDate, fmtDateTime, relTime, fmtMoney, parseMoney, centsToInput, toLocalInput, todayLocal, label,
   STATUS_LABELS, STATUSES, TYPE_LABELS, TYPES, METHOD_LABELS, KIND_LABELS,
-  postingBadge, minorBadge, statusPill, loadClients, pencilChoice, attachMenu, viewToggle,
+  postingBadge, minorBadge, statusPill, loadClients, pencilChoice, filterChoice, attachMenu, viewToggle,
 } from "./lib.js";
 import { paymentsTable } from "./clients.js";
 import { openGalleryForm, galleryRow } from "./galleries.js";
@@ -94,7 +94,7 @@ export async function renderSessions(query = new URLSearchParams()) {
       "aria-pressed": String(k === group),
       title: k === group ? "Show all sessions" : null,
     }, l)));
-  const typeSel = pencilChoice({
+  const typeSel = filterChoice({
     items: [["", "All types"], ...TYPES.map((t) => [t, TYPE_LABELS[t]])],
     value: type,
     ariaLabel: "Session type",
