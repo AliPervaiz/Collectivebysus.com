@@ -594,3 +594,7 @@ p a:not(.btn), .legal a, .info-block p a { text-decoration: underline; text-unde
   .site-nav .brand { font-size: 1.15rem; letter-spacing: 0.12em; white-space: nowrap; }
   .hero-text .eyebrow { letter-spacing: 0.16em; }
 }
+
+/* Photo frames: neutral cream while a photo loads (was grey / light blue, visible on phones as
+   lazy-loaded photos arrive). */
+.ph, .ph.alt, .ph.blue { background: var(--bg-alt); color: var(--muted); }
