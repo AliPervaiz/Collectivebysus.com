@@ -70,7 +70,13 @@
     var maxLabel = root.closest("fieldset") ? root.closest("fieldset").querySelector("[data-max-picks]") : null;
 
     function load() {
-      grid.replaceChildren(el("p", "dp-loading", "Loading available days..."));
+      // Draw this month's (greyed-out) grid right away so the form doesn't jump when days arrive.
+      if (!st.loaded) {
+        var now = new Date();
+        st.y = now.getFullYear(); st.m = now.getMonth() + 1;
+        render();
+      }
+      grid.setAttribute("aria-busy", "true");
       return fetch("/api/public/availability", { headers: { accept: "application/json" }, cache: "no-store" })
         .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
         .then(function (data) {
@@ -84,6 +90,7 @@
             st.y = start.y; st.m = start.m;
           }
           st.loaded = true;
+          grid.removeAttribute("aria-busy");
           render();
         })
         .catch(function () {
@@ -151,6 +158,8 @@
         if (isOpen) btn.addEventListener("click", toggle.bind(null, k));
         days.appendChild(btn);
       }
+      // Always six week rows, so the calendar is the same height every month.
+      for (var pad = lead + count; pad < 42; pad++) days.appendChild(el("span", "dp-blank"));
       grid.replaceChildren(head, days);
 
       chosen.replaceChildren();
