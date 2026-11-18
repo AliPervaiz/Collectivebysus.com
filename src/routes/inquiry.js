@@ -120,6 +120,9 @@ function validate(body) {
       session_type,
       preferred_dates,
       date_notes: cleanText(body.date_notes, 500),
+      // Where the visit came from (set by js/visit.js): a short label and the referring site's name only.
+      came_from: cleanLine(body.came_from, 40),
+      referrer_host: /^[a-z0-9.-]{1,120}$/i.test(String(body.referrer_host || "")) ? String(body.referrer_host).toLowerCase() : null,
       location: cleanLine(body.location, 200),
       people_count: cleanLine(body.people_count, 40),
       usage: cleanText(body.usage, 500),
@@ -208,10 +211,11 @@ export async function handleInquiry(request, env, ctx, url) {
   await env.DB.batch([
     env.DB.prepare(
       `INSERT INTO inquiries (id, client_id, session_id, name, email, phone, instagram, session_type,
-         preferred_dates, date_notes, location, people_count, usage, referral, message, status, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', ?)`
+         preferred_dates, date_notes, location, people_count, usage, referral, message, came_from, referrer_host,
+         status, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', ?)`
     ).bind(inquiryId, client.id, sessionId, d.name, d.email, d.phone, d.instagram, d.session_type,
-      JSON.stringify(d.preferred_dates), d.date_notes, d.location, d.people_count, d.usage, d.referral, d.message, now),
+      JSON.stringify(d.preferred_dates), d.date_notes, d.location, d.people_count, d.usage, d.referral, d.message, d.came_from, d.referrer_host, now),
     env.DB.prepare(
       `INSERT INTO sessions (id, client_id, inquiry_id, type, title, location, status, status_changed_at,
          notes, created_at, updated_at)
@@ -241,6 +245,7 @@ export async function handleInquiry(request, env, ctx, url) {
     `Number of people: ${d.people_count || "-"}`,
     `Photo usage: ${d.usage || "-"}`,
     `Found me via: ${d.referral ? REFERRAL_LABELS[d.referral] || d.referral : "-"}`,
+    `Came to the site from: ${d.came_from || "-"}${d.referrer_host && d.referrer_host.toLowerCase() !== String(d.came_from || "").toLowerCase() ? ` (${d.referrer_host})` : ""}`,
     "",
     "Message:",
     d.message || "-",

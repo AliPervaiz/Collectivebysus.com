@@ -344,6 +344,7 @@ function inquiryCard(q, reload) {
     ["People", q.people_count],
     ["Photo use", q.usage],
     ["Found me via", q.referral],
+    ["Came from", q.came_from ? q.came_from + (q.referrer_host && q.referrer_host.toLowerCase() !== q.came_from.toLowerCase() ? ` (${q.referrer_host})` : "") : ""],
     ["Phone", q.phone],
     ["Instagram", q.instagram ? `@${String(q.instagram).replace(/^@+/, "")}` : ""],
   ].filter(([, v]) => v);

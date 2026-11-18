@@ -251,6 +251,8 @@
         session_type: value("session_type"),
         preferred_dates: dates,
         date_notes: value("date_notes"),
+        came_from: ((window.siteCameFrom && window.siteCameFrom()) || {}).label || "",
+        referrer_host: ((window.siteCameFrom && window.siteCameFrom()) || {}).host || "",
         location: value("location"),
         people_count: value("people_count"),
         usage: value("usage"),

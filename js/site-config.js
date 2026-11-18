@@ -6,4 +6,6 @@ window.SITE_CONFIG = {
   ownerFirstName: "Susi",
   contactEmail: "contact@collectivebysus.com",
   instagram: "collectivebysus",
+  // Cloudflare Web Analytics site token (public; from Cloudflare > Analytics & Logs > Web Analytics). Empty = off.
+  webAnalyticsToken: "",
 };

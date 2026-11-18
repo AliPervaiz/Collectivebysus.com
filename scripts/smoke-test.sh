@@ -58,12 +58,16 @@ expect "inquiry bad session type -> 400" 400 "${J[@]}" -X POST "$B/api/inquiry" 
 curl -s "$B/api/public/availability" > "$TMP/avail"
 OD=$(node -e 'const d=JSON.parse(require("fs").readFileSync(0));process.stdout.write(JSON.stringify((d.open_days||[]).slice(0,2)))' < "$TMP/avail")
 expect "inquiry valid -> 201" 201 "${J[@]}" -X POST "$B/api/inquiry" \
-  -d "{\"form_token\":\"$TOKEN\",\"name\":\"Smoke Tester\",\"email\":\"smoke@smoke.example\",\"phone\":\"512-555-0100\",\"instagram\":\"@smoke.tester\",\"session_type\":\"graduation\",\"preferred_dates\":$OD,\"date_notes\":\"Golden hour\",\"location\":\"Campus\",\"people_count\":\"1\",\"usage\":\"Announcements\",\"referral\":\"instagram\",\"message\":\"<script>alert(1)</script>\"}"
+  -d "{\"form_token\":\"$TOKEN\",\"name\":\"Smoke Tester\",\"email\":\"smoke@smoke.example\",\"phone\":\"512-555-0100\",\"instagram\":\"@smoke.tester\",\"session_type\":\"graduation\",\"preferred_dates\":$OD,\"date_notes\":\"Golden hour\",\"came_from\":\"Instagram\",\"referrer_host\":\"l.instagram.com\",\"location\":\"Campus\",\"people_count\":\"1\",\"usage\":\"Announcements\",\"referral\":\"instagram\",\"message\":\"<script>alert(1)</script>\"}"
 has "thank-you includes price note" '"price_note"'
 expect "honeypot stored nothing" 200 "$B/api/admin/clients?q=bot%40smoke"
 grep -q 'bot@smoke.example' "$TMP/body" && bad "honeypot stored nothing" "bot client exists" || ok "no bot client"
 expect "inquiry created client" 200 "$B/api/admin/clients?q=smoke%40smoke"
 has "client found" 'smoke@smoke.example'
+SMOKE_CID=$(jget "clients.0.id")
+expect "inquiry client detail" 200 "$B/api/admin/clients/$SMOKE_CID"
+has "inquiry source saved" '"came_from":"Instagram"'
+has "referrer site saved" '"referrer_host":"l.instagram.com"'
 # Rate limit: 5 per hour per IP. Valid + bad ones above count only if they passed the token step.
 for i in 1 2 3 4 5 6; do
   code=$(curl -s -o "$TMP/body" -w '%{http_code}' "${J[@]}" -X POST "$B/api/inquiry" \
