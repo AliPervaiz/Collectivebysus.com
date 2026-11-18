@@ -17,7 +17,7 @@
   <nav class="site-nav">
     <div class="nav-inner">
       <a href="index.html" class="brand">Collective by Sus<span>.</span></a>
-      <button class="nav-toggle" aria-label="Toggle menu" onclick="document.getElementById('navLinks').classList.toggle('open')">
+      <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks" onclick="this.setAttribute('aria-expanded', document.getElementById('navLinks').classList.toggle('open'))">
         <span></span><span></span><span></span>
       </button>
       <ul class="nav-links" id="navLinks">
@@ -97,7 +97,7 @@
           <p>Engagement, event, and grad photography rooted in natural light and quiet storytelling.</p>
         </div>
         <div>
-          <h4>Explore</h4>
+          <h2 class="h4">Explore</h2>
           <ul>
             <li><a href="about.html">About</a></li>
             <li><a href="portfolio.html">Portfolio</a></li>
@@ -106,7 +106,7 @@
           </ul>
         </div>
         <div>
-          <h4>Connect</h4>
+          <h2 class="h4">Connect</h2>
           <ul>
             <li><a href="mailto:contact@collectivebysus.com">contact@collectivebysus.com</a></li>
             <li><a href="https://www.instagram.com/collectivebysus" target="_blank" rel="noopener">Instagram</a></li>

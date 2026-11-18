@@ -94,7 +94,8 @@ expect "record retainer" 201 "${J[@]}" -X POST "$B/api/admin/sessions/$SID/payme
 PID=$(jget payment.id)
 expect "session detail" 200 "$B/api/admin/sessions/$SID"
 has "balance owed computed (200.00 left)" '"balance_cents":20000'
-expect "stage change to shot" 200 "${J[@]}" -X PATCH "$B/api/admin/sessions/$SID" -d '{"status":"shot"}'
+expect "old stage name 'shot' still accepted" 200 "${J[@]}" -X PATCH "$B/api/admin/sessions/$SID" -d '{"status":"shot"}'
+has "shot is stored as editing" '"status":"editing"'
 expect "sessions filter by stage" 200 "$B/api/admin/sessions?status=shot"
 has "filtered list has session" "$SID"
 expect "sessions filter by stage group" 200 "$B/api/admin/sessions?status=shot,editing"
@@ -130,7 +131,7 @@ expect "inquiry picking a full day -> 409" 409 "${J[@]}" -X POST "$B/api/inquiry
   -d "{\"form_token\":\"$TOKEN\",\"name\":\"Full Day\",\"email\":\"full@smoke.example\",\"session_type\":\"portrait\",\"preferred_dates\":[\"$D1\"]}"
 has "409 lists the unavailable day" "$D1"
 FIRST_SID=$(echo $SIDS | cut -d' ' -f1)
-expect "mark one shoot lost" 200 "${J[@]}" -X PATCH "$B/api/admin/sessions/$FIRST_SID" -d '{"status":"lost"}'
+expect "archive one shoot" 200 "${J[@]}" -X PATCH "$B/api/admin/sessions/$FIRST_SID" -d '{"status":"archived"}'
 in_open "$D1" && ok "lost sessions don't count" || bad "lost sessions don't count" "$D1 still full"
 expect "block $D2" 200 "${J[@]}" -X PUT "$B/api/admin/days/$D2" -d '{"kind":"blocked","note":"family"}'
 in_open "$D2" && bad "blocked day hidden" "$D2 still open" || ok "blocked day hidden"
@@ -185,7 +186,7 @@ expect "smoke client sessions after webhooks" 200 "$B/api/admin/clients?q=smoke%
 SMOKE_CID=$(node -e 'const o=JSON.parse(require("fs").readFileSync(0,"utf8"));process.stdout.write((o.clients||[])[0]?.id||"")' < "$TMP/body")
 expect "smoke client detail" 200 "$B/api/admin/clients/$SMOKE_CID"
 has "rescheduled booking uid stored" "2026-12-06"
-has "cancelled -> lost" '"status":"lost"'
+has "cancelled -> archived" '"status":"archived"'
 
 echo "== galleries"
 # Tiny valid JPEG (1x1) for upload tests.

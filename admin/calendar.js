@@ -171,8 +171,8 @@ export async function renderCalendar(query = new URLSearchParams()) {
   };
 
   /* Month grid */
-  const grid = el("div", { class: "cal-grid", role: "grid", "aria-label": title },
-    WEEKDAYS.map((w) => el("div", { class: "cal-wd", role: "columnheader" }, w)),
+  const grid = el("div", { class: "cal-grid", "aria-label": title },
+    WEEKDAYS.map((w) => el("div", { class: "cal-wd", "aria-hidden": "true" }, w)),
     days.map((day) => {
       const list = byDay.get(day.key) || [];
       const isPast = day.key < todayKey;
@@ -188,8 +188,8 @@ export async function renderCalendar(query = new URLSearchParams()) {
         ? el("span", { class: "cal-asks", title: `${plural(a.requests, "open inquiry", "open inquiries")} picked this day` }, `${a.requests} ask${a.requests === 1 ? "" : "s"}`)
         : null;
       const cell = el("div", {
-        class: cls, role: "gridcell", tabindex: "0", "data-day": day.key,
-        "aria-label": `${day.key}: ${plural(list.length, "session")}${a && a.reason === "full" ? ", full" : ""}${a && a.reason === "blocked" ? ", blocked" : ""}`,
+        class: cls, role: "group", tabindex: "0", "data-day": day.key,
+        "aria-label": `${day.d} ${new Date(Date.UTC(day.y, day.m - 1, day.d)).toLocaleDateString("en-US", { weekday: "long", month: "long", timeZone: "UTC" })}: ${plural(list.length, "session")}${a && a.reason === "full" ? ", full" : ""}${a && a.reason === "blocked" ? ", blocked" : ""}`,
         onkeydown: (e) => { if (e.key === "Enter" && e.target === e.currentTarget) e.currentTarget.click(); },
       },
         el("span", { class: "cal-day-top" }, el("span", { class: "cal-num" }, day.d), dayBadge(a)),
@@ -234,7 +234,7 @@ export async function renderCalendar(query = new URLSearchParams()) {
   const blockedIn = (d) => { const a = (avail.days || {})[d.key]; return a && a.override === "blocked" ? a : null; };
   const agendaDays = days.filter((d) => d.inMonth && (byDay.has(d.key) || blockedIn(d)));
   const agenda = el("section", { class: "cal-agenda" },
-    el("h4", {}, "This month"),
+    el("h2", { class: "h4" }, "This month"),
     agendaDays.length
       ? agendaDays.map((day) => el("div", { class: `ag-day${day.key < todayKey ? " is-past" : ""}${day.key === todayKey ? " is-today" : ""}`, id: `ag-${day.key}` },
           el("div", { class: "ag-date" },
@@ -258,7 +258,7 @@ export async function renderCalendar(query = new URLSearchParams()) {
       el("a", { class: "btn small", href: href(shiftMonth(month, -1)), "aria-label": "Previous month" }, "‹"),
       el("a", { class: "btn small", href: href(parseMonth("")) }, "Today"),
       el("a", { class: "btn small", href: href(shiftMonth(month, 1)), "aria-label": "Next month" }, "›"),
-      el("button", { class: "btn small solid", type: "button", onclick: () => openSessionForm(undefined, { status: "booked" }, { onSaved: () => renderCalendar(query) }) }, "+ Session")
+      el("button", { class: "btn small solid", type: "button", onclick: () => openSessionForm(undefined, { status: "booked" }, { onSaved: () => renderCalendar(query) }) }, "New session")
     )
   );
 

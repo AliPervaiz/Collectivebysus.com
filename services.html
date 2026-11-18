@@ -17,7 +17,7 @@
   <nav class="site-nav">
     <div class="nav-inner">
       <a href="index.html" class="brand">Collective by Sus<span>.</span></a>
-      <button class="nav-toggle" aria-label="Toggle menu" onclick="document.getElementById('navLinks').classList.toggle('open')">
+      <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks" onclick="this.setAttribute('aria-expanded', document.getElementById('navLinks').classList.toggle('open'))">
         <span></span><span></span><span></span>
       </button>
       <ul class="nav-links" id="navLinks">
@@ -31,7 +31,7 @@
   </nav>
 
   <header class="page-header">
-    <span class="eyebrow">Investment &amp; Offerings</span>
+    <span class="eyebrow">Sessions</span>
     <h1>Services</h1>
     <p>Sessions are built around your day. These starting points give a sense of what's included.</p>
     <div class="accent-line"></div>
@@ -44,11 +44,11 @@
         <!-- Engagements -->
         <article class="service-row">
           <div class="ph blue">
-            <img src="Photos/Portfolio/Engagement/NEWADD%285%29.JPG" alt="Engagement session" loading="lazy" />
+            <img fetchpriority="high" decoding="async" src="/img/opt/portfolio-engagement-newadd-5-1600.webp" srcset="/img/opt/portfolio-engagement-newadd-5-800.webp 800w, /img/opt/portfolio-engagement-newadd-5-1600.webp 1350w" sizes="(max-width: 720px) 100vw, 50vw" alt="Engagement session" />
           </div>
           <div>
             <span class="eyebrow">01 · Couples</span>
-            <h3>Engagements</h3>
+            <h2 class="h3">Engagements</h2>
             <p>
               A slow afternoon for the two of you, the kind that feels like a date you happen to
               have a camera at. Lovely for save-the-dates, pre-wedding sessions, anniversaries, or
@@ -67,11 +67,11 @@
         <!-- Events -->
         <article class="service-row reverse">
           <div class="ph alt">
-            <img src="Photos/Portfolio/Events/NEWADD%2811%29.jpg" alt="Event photograph" loading="lazy" />
+            <img decoding="async" src="/img/opt/portfolio-events-newadd-11-1600.webp" srcset="/img/opt/portfolio-events-newadd-11-800.webp 800w, /img/opt/portfolio-events-newadd-11-1600.webp 1320w" sizes="(max-width: 720px) 100vw, 50vw" alt="Event photograph" loading="lazy" />
           </div>
           <div>
             <span class="eyebrow">02 · Gatherings</span>
-            <h3>Events</h3>
+            <h2 class="h3">Events</h2>
             <p>
               Birthdays, showers, anniversaries, milestone parties: anything worth remembering.
               Light, candid coverage with a few intentional group shots so you end up with both
@@ -90,11 +90,11 @@
         <!-- Grads -->
         <article class="service-row">
           <div class="ph">
-            <img src="Photos/Portfolio/Grad/NEWADD%284%29.jpg" alt="Grad session" loading="lazy" />
+            <img decoding="async" src="/img/opt/portfolio-grad-newadd-4-1600.webp" srcset="/img/opt/portfolio-grad-newadd-4-800.webp 800w, /img/opt/portfolio-grad-newadd-4-1600.webp 1320w" sizes="(max-width: 720px) 100vw, 50vw" alt="Grad session" loading="lazy" />
           </div>
           <div>
             <span class="eyebrow">03 · Milestones</span>
-            <h3>Grads</h3>
+            <h2 class="h3">Grads</h2>
             <p>
               A relaxed celebration of the chapter you just finished. On campus, in a favorite
               neighborhood, or somewhere meaningful to you. Bring your gown, your friends, your dog.
@@ -120,17 +120,17 @@
 
         <div class="featured-grid" style="grid-template-columns:repeat(3,1fr);">
           <div>
-            <h4>01 · Inquiry</h4>
+            <h2 class="h4">01 · Inquiry</h2>
             <h3 style="font-family:var(--serif); font-size:1.5rem;">Reach out</h3>
             <p>Send a note through the contact page with a few details about what you're planning.</p>
           </div>
           <div>
-            <h4>02 · Plan</h4>
+            <h2 class="h4">02 · Plan</h2>
             <h3 style="font-family:var(--serif); font-size:1.5rem;">We sketch it out</h3>
             <p>A short call or email thread to pick a date, lock in details, and answer questions.</p>
           </div>
           <div>
-            <h4>03 · Shoot</h4>
+            <h2 class="h4">03 · Shoot</h2>
             <h3 style="font-family:var(--serif); font-size:1.5rem;">The session</h3>
             <p>Show up as you are. I'll handle direction, light, and the small logistical stuff.</p>
           </div>
@@ -156,7 +156,7 @@
           <p>Engagement, event, and grad photography rooted in natural light and quiet storytelling.</p>
         </div>
         <div>
-          <h4>Explore</h4>
+          <h2 class="h4">Explore</h2>
           <ul>
             <li><a href="about.html">About</a></li>
             <li><a href="portfolio.html">Portfolio</a></li>
@@ -165,7 +165,7 @@
           </ul>
         </div>
         <div>
-          <h4>Connect</h4>
+          <h2 class="h4">Connect</h2>
           <ul>
             <li><a href="mailto:contact@collectivebysus.com">contact@collectivebysus.com</a></li>
             <li><a href="https://www.instagram.com/collectivebysus" target="_blank" rel="noopener">Instagram</a></li>

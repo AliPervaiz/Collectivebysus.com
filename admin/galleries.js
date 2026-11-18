@@ -39,24 +39,37 @@ function heartSvg() {
 }
 
 /** Linked-client line with posting + minor badges (used on list rows and sidebar). */
-function linkedClient(g, { link = true } = {}) {
+function linkedClient(g, { link = true, tags = false } = {}) {
   if (!g.client_id) return null;
   return el("div", { class: "linked-client" },
     link
       ? el("a", { class: "raise", href: `#/c/${g.client_id}` }, g.linked_client_name || "Client")
       : el("span", {}, g.linked_client_name || "Client"),
-    postingBadge(g.client_can_post),
-    minorBadge(g.client_is_minor)
+    tags ? postingBadge(g.client_can_post) : null,
+    tags ? minorBadge(g.client_is_minor) : null
   );
 }
 
-/** Compact gallery row (also used on client/session pages). */
-export function galleryRow(g) {
+/**
+ * Gallery row. context: "list" (Galleries page), "client" (on a client's page: no client name),
+ * "session" (compact card for a session's side panel: no client or session repeated).
+ */
+export function galleryRow(g, { context = "list" } = {}) {
+  if (context === "session") {
+    return el("div", { class: "gal-row compact" },
+      el("div", {},
+        el("h3", {}, el("a", { class: "stretch", href: `#/g/${g.id}` }, g.title)),
+        el("div", { class: "meta" }, `${g.photo_count ?? 0} photos · ${g.favorite_count ?? 0} favorites`)
+      ),
+      galleryStatusPill(g)
+    );
+  }
+  const showClient = context !== "client";
   return el("div", { class: "gal-row" },
     el("div", {},
       el("h3", {}, el("a", { class: "stretch", href: `#/g/${g.id}` }, g.title)),
-      el("div", { class: "meta" }, [g.client_name, `Created ${fmtDate(g.created_at)}`].filter(Boolean).join(" · ")),
-      linkedClient(g),
+      el("div", { class: "meta" }, [g.client_id || !showClient ? "" : g.client_name, `Created ${fmtDate(g.created_at)}`].filter(Boolean).join(" · ")),
+      showClient ? linkedClient(g) : null,
       g.session_id && g.session_title
         ? el("div", { class: "meta" }, "Session: ", el("a", { class: "raise", href: `#/s/${g.session_id}` }, g.session_title))
         : null
@@ -76,11 +89,8 @@ export async function renderGalleryList() {
   catch (err) { return mount(...errorView(err)); }
 
   const head = el("div", { class: "admin-head" },
-    el("div", {},
-      el("span", { class: "eyebrow" }, "Gallery Manager"),
-      el("h1", {}, "Client Galleries"),
-    ),
-    el("button", { class: "btn solid", type: "button", onclick: () => openGalleryForm() }, "New Gallery")
+    el("div", {}, el("h1", {}, "Galleries")),
+    el("button", { class: "btn solid", type: "button", onclick: () => openGalleryForm() }, "New gallery")
   );
 
   const list = data.galleries.length
@@ -102,8 +112,8 @@ export async function renderGalleryList() {
 export function openGalleryForm(existing, preset = {}) {
   const g = existing || preset || {};
   const f = {
-    title: el("input", { type: "text", required: true, maxlength: "200", value: g.title || "", placeholder: "Sarah & James · Engagement" }),
-    client_name: el("input", { type: "text", maxlength: "200", value: g.client_name || "", placeholder: "Sarah" }),
+    title: el("input", { type: "text", required: true, maxlength: "200", value: g.title || "", placeholder: "e.g. Sarah & James · Engagement" }),
+    client_name: el("input", { type: "text", maxlength: "200", value: g.client_name || "", placeholder: "e.g. Sarah" }),
     client_email: el("input", { type: "email", maxlength: "200", value: g.client_email || "" }),
     pin: el("input", { type: "text", maxlength: "32", autocomplete: "off", placeholder: g.has_pin ? "Leave blank to keep current PIN" : "Optional, e.g. 2611" }),
     remove_pin: el("input", { type: "checkbox" }),
@@ -114,13 +124,18 @@ export function openGalleryForm(existing, preset = {}) {
     session_id: select([["", "No session"]], "", { disabled: true }),
   };
   const linkHint = el("small", { class: "hint" }, "Optional. Links this gallery to a client in your CRM.");
+  // Name/email are only needed for a gallery that isn't linked to a client (linked ones use the client's details).
+  const nameRow = el("div", { class: "field-row", hidden: !!(g.client_id) },
+    el("label", { class: "field" }, el("span", {}, "Client name"), f.client_name),
+    el("label", { class: "field" }, el("span", {}, "Client email"), f.client_email),
+  );
   const initialClient = g.client_id || "";
   const initialSession = g.session_id || "";
   let clients = [];
   let linksLoaded = false;
 
   const err = el("p", { class: "form-error", role: "alert" });
-  const submit = el("button", { class: "btn solid", type: "submit" }, existing ? "Save Changes" : "Create Gallery");
+  const submit = el("button", { class: "btn solid", type: "submit" }, existing ? "Save changes" : "Create gallery");
 
   const form = el("form", { class: "modal-card", onsubmit: onSubmit },
     modalCloseButton(() => closeModal()),
@@ -131,10 +146,7 @@ export function openGalleryForm(existing, preset = {}) {
       el("label", { class: "field" }, el("span", {}, "Session"), f.session_id),
     ),
     linkHint,
-    el("div", { class: "field-row" },
-      el("label", { class: "field" }, el("span", {}, "Client name"), f.client_name),
-      el("label", { class: "field" }, el("span", {}, "Client email"), f.client_email),
-    ),
+    nameRow,
     el("label", { class: "field" }, el("span", {}, "PIN"), f.pin,
       el("small", { class: "hint" }, "Clients enter this once to open the gallery. The link is already private, so this is extra.")),
     g.has_pin ? el("label", { class: "check" }, f.remove_pin, "Remove PIN") : null,
@@ -191,9 +203,10 @@ export function openGalleryForm(existing, preset = {}) {
   function onClientChange() {
     const c = clients.find((x) => x.id === f.client_id.value);
     if (c) {
-      if (!f.client_name.value.trim()) f.client_name.value = c.name || "";
-      if (!f.client_email.value.trim() && c.email) f.client_email.value = c.email;
+      f.client_name.value = c.name || "";
+      f.client_email.value = c.email || "";
     }
+    nameRow.hidden = !!c;
     loadSessions(f.client_id.value, "");
   }
 
@@ -265,10 +278,14 @@ export async function renderGalleryDetail(id, { refresh = false } = {}) {
 
   // Upload
   const fileInput = el("input", { type: "file", accept: "image/*", multiple: true });
-  const dropzone = el("label", { class: "dropzone" },
+  // Big drop area for an empty gallery; once it has photos, a compact "+ Add photos" button.
+  const dropzone = el("label", { class: "dropzone" + (photos.length ? " compact" : "") },
     fileInput,
-    el("strong", {}, "Add photos"),
-    el("span", {}, "Drop your edited JPEGs here or click to choose. They're resized for web on this computer before uploading, so your originals stay with you.")
+    el("strong", {}, photos.length ? "+ Add photos" : "Add photos"),
+    photos.length ? null : el("span", {},
+      el("span", { class: "dz-mouse" }, "Drop your edited JPEGs here or click to choose."),
+      el("span", { class: "dz-touch" }, "Tap to choose your edited JPEGs."),
+      " They're resized for web before uploading, so your originals stay with you.")
   );
   const progress = el("div", { class: "progress", hidden: true },
     el("div", { class: "progress-track" }, el("div", { class: "progress-fill" })),
@@ -314,25 +331,9 @@ export async function renderGalleryDetail(id, { refresh = false } = {}) {
   const baseNames = favs.map((p) => p.filename.replace(/\.[^.]+$/, ""));
   const side = el("aside", {},
     el("div", { class: "panel" },
-      el("h4", {}, "Client"),
-      g.client_id
-        ? el("div", {},
-            linkedClient(g),
-            g.session_id
-              ? el("p", { style: "margin:8px 0 0" }, "Session: ",
-                  el("a", { href: `#/s/${g.session_id}` }, g.session_title || label(TYPE_LABELS, g.session_type) || "View session"))
-              : null,
-            g.client_can_post === "no"
-              ? el("p", { class: "warn-text", style: "margin:10px 0 0" }, "This client asked you not to post their photos.")
-              : null
-          )
-        : el("p", { style: "margin:0" }, "Not linked to a client yet. ",
-            el("button", { class: "linklike", type: "button", onclick: () => openGalleryForm(g) }, "Link one"))
-    ),
-    el("div", { class: "panel" },
-      el("h4", {}, "Share"),
+      el("h2", { class: "h4" }, "Share"),
       el("div", { class: "share-row" },
-        el("input", { type: "text", readonly: true, value: shareUrl(g), onfocus: (e) => e.target.select() }),
+        el("input", { type: "text", readonly: true, value: shareUrl(g), "aria-label": "Share link", onfocus: (e) => e.target.select() }),
         el("button", { class: "btn small solid", type: "button", onclick: () => copy(shareUrl(g), "Link copied") }, "Copy")
       ),
       el("p", { style: "margin:12px 0 0" },
@@ -346,7 +347,23 @@ export async function renderGalleryDetail(id, { refresh = false } = {}) {
       )
     ),
     el("div", { class: "panel" },
-      el("h4", {}, "Client selections"),
+      el("h2", { class: "h4" }, "Client"),
+      g.client_id
+        ? el("div", {},
+            linkedClient(g, { tags: true }),
+            g.session_id
+              ? el("p", { style: "margin:8px 0 0" }, "Session: ",
+                  el("a", { href: `#/s/${g.session_id}` }, g.session_title || label(TYPE_LABELS, g.session_type) || "View session"))
+              : null,
+            g.client_can_post === "no"
+              ? el("p", { class: "warn-text", style: "margin:10px 0 0" }, "This client asked you not to post their photos.")
+              : null
+          )
+        : el("p", { style: "margin:0" }, "Not linked to a client yet. ",
+            el("button", { class: "linklike", type: "button", onclick: () => openGalleryForm(g) }, "Link one"))
+    ),
+    el("div", { class: "panel" },
+      el("h2", { class: "h4" }, "Client selections"),
       el("p", { style: "margin:0" },
         favs.length ? `${favs.length} favorite${favs.length === 1 ? "" : "s"}` : "No favorites yet.",
         g.submitted_at ? ` · Sent ${fmtDate(g.submitted_at)}` : ""
@@ -362,7 +379,7 @@ export async function renderGalleryDetail(id, { refresh = false } = {}) {
         "Lightroom tip: in Library, open the Filter bar › Text › Filename › Contains, and paste.") : null
     ),
     el("div", { class: "panel" },
-      el("h4", {}, "Settings"),
+      el("h2", { class: "h4" }, "Settings"),
       el("div", { class: "btn-row", style: "margin-top:0" },
         el("button", { class: "btn small", type: "button", onclick: () => openGalleryForm(g) }, "Edit"),
         favs.length ? el("button", {
@@ -388,7 +405,7 @@ export async function renderGalleryDetail(id, { refresh = false } = {}) {
   mount(
     el("a", { class: "back-link", href: "#/galleries" }, "← All galleries"),
     head,
-    el("div", { class: "detail-grid" }, main, side)
+    el("div", { class: "detail-grid gallery-detail" }, main, side)
   );
 }
 

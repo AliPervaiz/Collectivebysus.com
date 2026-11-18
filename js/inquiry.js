@@ -186,6 +186,15 @@
     var dpRoot = form.querySelector("[data-day-picker]");
     var picker = dpRoot ? dayPicker(dpRoot) : null;
 
+    // Notes that only apply to one session type (e.g. the under-18 note for Graduation).
+    function syncTypeNotes() {
+      var v = value("session_type");
+      Array.prototype.forEach.call(form.querySelectorAll("[data-show-for]"), function (n) {
+        n.hidden = n.getAttribute("data-show-for") !== v;
+      });
+    }
+    form.addEventListener("change", function (e) { if (e.target && e.target.name === "session_type") syncTypeNotes(); });
+
 
     function applySettings(data) {
       if (!data) return;

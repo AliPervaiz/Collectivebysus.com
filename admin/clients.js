@@ -6,6 +6,9 @@ import {
   TYPE_LABELS, METHOD_LABELS, KIND_LABELS, CHANNELS, CAN_POST_LABELS, ACTIVITY_LABELS,
   postingBadge, minorBadge, statusPill, mailHref, telHref, igHref, igHandle,
  pencilChoice,
+  markRepliedButton,
+  dangerZone,
+  typeUnlessInTitle,
 } from "./lib.js";
 import { openSessionForm, sessionMoney } from "./sessions.js";
 import { openGalleryForm, galleryRow } from "./galleries.js";
@@ -22,7 +25,7 @@ export async function renderClients() {
   });
   const list = el("div", { class: "row-list" }, el("p", { class: "admin-muted" }, "Loading…"));
   const head = el("div", { class: "admin-head" },
-    el("div", {}, el("span", { class: "eyebrow" }, "CRM"), el("h1", {}, "Clients")),
+    el("div", {}, el("h1", {}, "Clients")),
     el("button", { class: "btn solid", type: "button", onclick: () => openClientForm() }, "New client")
   );
   mount(head, el("div", { class: "search-bar" }, search), list);
@@ -63,13 +66,11 @@ function clientRow(c) {
       el("span", { class: "row-sub" }, [handle ? `@${handle}` : null, c.email].filter(Boolean).join(" · ") || "No contact info"),
       el("span", { class: "row-sub" },
         plural(c.session_count || 0, "session"),
-        c.last_session_at ? ` · last ${fmtDate(c.last_session_at)}` : "")
+        c.last_session_at ? ` · ${new Date(c.last_session_at) > new Date() ? "next" : "last"} ${fmtDate(c.last_session_at)}` : "")
     ),
     el("div", { class: "row-badges" },
       c.open_inquiries ? el("span", { class: "pill urgent-pill" }, plural(c.open_inquiries, "open inquiry", "open inquiries")) : null,
-      postingBadge(c.can_post),
-      minorBadge(c.is_minor),
-      c.balance_cents > 0 ? el("span", { class: "pill owed" }, `${fmtMoney(c.balance_cents)} owed`) : null
+      c.balance_cents > 0 ? el("span", { class: "pill owed" }, `${fmtMoney(c.balance_cents)} due`) : null
     )
   );
 }
@@ -83,7 +84,7 @@ export function openClientForm(existing, { onSaved } = {}) {
     email: el("input", { type: "email", maxlength: "200", value: c.email || "", autocomplete: "off" }),
     phone: el("input", { type: "tel", maxlength: "40", value: c.phone || "", autocomplete: "off" }),
     instagram: el("input", { type: "text", maxlength: "60", value: c.instagram ? `@${c.instagram}` : "", placeholder: "@handle", autocomplete: "off", autocapitalize: "off" }),
-    source: el("input", { type: "text", maxlength: "80", value: c.source || "", placeholder: "Instagram, referral, Google…", list: "client-sources" }),
+    source: el("input", { type: "text", maxlength: "80", value: c.source || "", placeholder: "e.g. Instagram, a referral, Google", list: "client-sources" }),
     can_post: select(Object.entries(CAN_POST_LABELS), c.can_post || "ask"),
     is_minor: el("input", { type: "checkbox", checked: !!c.is_minor }),
     guardian_name: el("input", { type: "text", maxlength: "200", value: c.guardian_name || "" }),
@@ -102,7 +103,7 @@ export function openClientForm(existing, { onSaved } = {}) {
 
   const { close } = openModal({
     title: existing ? "Edit client" : "New client",
-    submitLabel: existing ? "Save" : "Add client",
+    submitLabel: existing ? "Save changes" : "Create client",
     children: [
       sources,
       field("Name *", f.name),
@@ -181,15 +182,7 @@ export async function renderClientDetail(id, { refresh = false } = {}) {
       contact
     ),
     el("div", { class: "btn-row", style: "margin:0" },
-      el("button", { class: "btn small", type: "button", onclick: () => openClientForm(c, { onSaved: reload }) }, "Edit"),
-      el("button", {
-        class: "btn small danger", type: "button",
-        onclick: async () => {
-          if (!confirm(`Delete ${c.name}? Their sessions, payments and notes will be deleted too. Galleries stay but are unlinked. This can't be undone.`)) return;
-          try { await send(`/clients/${c.id}`, "DELETE"); toast("Client deleted"); location.hash = "#/clients"; }
-          catch (ex) { toast(ex.message); }
-        },
-      }, "Delete")
+      el("button", { class: "btn small", type: "button", onclick: () => openClientForm(c, { onSaved: reload }) }, "Edit")
     )
   );
 
@@ -231,7 +224,7 @@ export async function renderClientDetail(id, { refresh = false } = {}) {
   }, chan, contactNote, logBtn);
 
   const contactPanel = el("div", { class: "panel" },
-    el("h4", {}, "Log a contact"),
+    el("h2", { class: "h4" }, "Log a contact"),
     el("p", { class: "admin-muted small-text" },
       c.last_contact_at ? `Last contact ${relTime(c.last_contact_at)}.` : "No contact logged yet.",
       openInq.length ? " Logging a contact marks open inquiries as replied." : ""),
@@ -241,14 +234,14 @@ export async function renderClientDetail(id, { refresh = false } = {}) {
   const main = el("div", {},
     inquiries.length ? section("Inquiries", null, inquiries.map((q) => inquiryCard(q, reload))) : null,
     section("Sessions",
-      el("button", { class: "btn small", type: "button", onclick: () => openSessionForm(null, { client_id: c.id }) }, "+ Session"),
+      el("button", { class: "btn small", type: "button", onclick: () => openSessionForm(null, { client_id: c.id }) }, "New session"),
       sessions.length ? sessions.map(sessionRow) : [emptyLine("No sessions yet.")]),
     section("Galleries",
       el("button", {
         class: "btn small", type: "button",
         onclick: () => openGalleryForm(undefined, { client_id: c.id, client_name: c.name, client_email: c.email || "" }),
-      }, "+ Gallery"),
-      galleries.length ? galleries.map((g) => galleryRow({ ...g, linked_client_name: g.linked_client_name || c.name, client_can_post: g.client_can_post || c.can_post, client_is_minor: g.client_is_minor ?? c.is_minor })) : [emptyLine("No galleries linked yet.")]),
+      }, "New gallery"),
+      galleries.length ? galleries.map((g) => galleryRow(g, { context: "client" })) : [emptyLine("No galleries linked yet.")]),
     section("Payments", null,
       payments.length ? [paymentsTable(payments)] : [emptyLine("No payments recorded.")])
   );
@@ -269,9 +262,9 @@ export async function renderClientDetail(id, { refresh = false } = {}) {
 
   const side = el("aside", {},
     contactPanel,
-    c.notes ? el("div", { class: "panel" }, el("h4", {}, "About"), el("div", { class: "note-box", style: "margin:0" }, c.notes)) : null,
+    c.notes ? el("div", { class: "panel" }, el("h2", { class: "h4" }, "About"), el("div", { class: "note-box", style: "margin:0" }, c.notes)) : null,
     el("div", { class: "panel" },
-      el("h4", {}, "Notes & activity"),
+      el("h2", { class: "h4" }, "Notes & activity"),
       noteForm,
       activity.length
         ? el("ol", { class: "activity" }, activity.map((a) =>
@@ -287,7 +280,12 @@ export async function renderClientDetail(id, { refresh = false } = {}) {
     el("a", { class: "back-link", href: "#/clients" }, "← All clients"),
     head,
     perm,
-    el("div", { class: "detail-grid" }, main, side)
+    el("div", { class: "detail-grid" }, main, side),
+    dangerZone("Delete this client", async () => {
+      if (!confirm(`Delete ${c.name}? Their sessions, payments and notes will be deleted too. Galleries stay but are unlinked. This can't be undone.`)) return;
+      try { await send(`/clients/${c.id}`, "DELETE"); toast("Client deleted"); location.hash = "#/clients"; }
+      catch (ex) { toast(ex.message); }
+    })
   );
 }
 
@@ -303,7 +301,7 @@ function sessionRow(s) {
   return el("a", { class: "row-card", href: `#/s/${s.id}` },
     el("div", { class: "row-main" },
       el("strong", {}, s.title || label(TYPE_LABELS, s.type)),
-      el("span", { class: "row-sub" }, [label(TYPE_LABELS, s.type), s.starts_at ? fmtDateTime(s.starts_at) : "Date not set"].join(" · ")),
+      el("span", { class: "row-sub" }, [typeUnlessInTitle(s), s.starts_at ? fmtDateTime(s.starts_at) : "Date not set"].filter(Boolean).join(" · ")),
       el("span", { class: "row-sub" }, sessionMoney(s))
     ),
     el("div", { class: "row-badges" }, statusPill(s.status),
@@ -351,24 +349,27 @@ function inquiryCard(q, reload) {
   ].filter(([, v]) => v);
 
   const isOpen = q.status === "new";
-  const chan = pencilChoice({ items: CHANNELS, value: "instagram", ariaLabel: "Replied via", prefix: "Replied via" });
+  const inquiryNotes = [dates.length ? `Open days: ${dates.join(", ")}` : "", q.date_notes ? `Timing: ${q.date_notes}` : "", q.people_count ? `People: ${q.people_count}` : "", q.message || ""].filter(Boolean).join("\n");
   const actions = el("div", { class: "btn-row" },
-    isOpen ? chan : null,
-    isOpen ? el("button", {
-      class: "btn small solid", type: "button",
-      onclick: async (e) => {
-        e.target.disabled = true;
-        try { await send(`/inquiries/${q.id}/replied`, "POST", { channel: chan.value }); toast("Marked replied"); reload(); }
-        catch (ex) { toast(ex.message); e.target.disabled = false; }
-      },
-    }, "Mark replied") : null,
+    isOpen ? markRepliedButton(q.id, reload) : null,
     el("button", {
       class: "btn small", type: "button",
-      onclick: () => openSessionForm(null, {
-        client_id: q.client_id, type: q.session_type, location: q.location, inquiry_id: q.id,
-        notes: [dates.length ? `Open days: ${dates.join(", ")}` : "", q.date_notes ? `Timing: ${q.date_notes}` : "", q.people_count ? `People: ${q.people_count}` : "", q.message || ""].filter(Boolean).join("\n"),
-      }),
-    }, "Start session"),
+      onclick: async (e) => {
+        // The inquiry already created a session (stage: Inquiry). Open that one to set the date and book it.
+        const btn = e.currentTarget;
+        if (q.session_id) {
+          btn.disabled = true;
+          try {
+            const { session } = await api(`/sessions/${q.session_id}`);
+            openSessionForm({ ...session, status: session.status === "inquiry" ? "booked" : session.status, client_name: q.client_name || q.name },
+              {}, { onSaved: reload });
+          } catch (ex) { toast(ex.message); }
+          finally { btn.disabled = false; }
+          return;
+        }
+        openSessionForm(null, { client_id: q.client_id, type: q.session_type, location: q.location, notes: inquiryNotes, status: "booked" }, { onSaved: reload });
+      },
+    }, "Book session"),
     q.status !== "closed" ? el("button", {
       class: "btn small", type: "button",
       onclick: async () => {

@@ -231,8 +231,7 @@ export const firstName = (name) => String(name || "").trim().split(/\s+/)[0] || 
 /* ---------- labels ---------- */
 
 export const STATUS_LABELS = {
-  inquiry: "Inquiry", booked: "Booked", shot: "Shot", editing: "Editing",
-  delivered: "Delivered", done: "Done", lost: "Lost", archived: "Archived",
+  inquiry: "Inquiry", booked: "Booked", editing: "Editing", done: "Done", archived: "Archived",
 };
 export const STATUSES = Object.keys(STATUS_LABELS);
 export const TYPE_LABELS = { graduation: "Graduation", engagement: "Engagement", event: "Event", portrait: "Portrait" };
@@ -402,7 +401,7 @@ export function filterChoice({ items, value, ariaLabel, prefix = "", onChange, c
   let current = value;
   const labelOf = (v) => (items.find(([x]) => x === v) || [v, String(v ?? "")])[1];
   const shown = el("span", { class: "choice-value" }, labelOf(current));
-  const btn = el("button", { class: "filter-btn", type: "button", "aria-label": `${ariaLabel}: ${labelOf(current)}` },
+  const btn = el("button", { class: "filter-btn", type: "button" },
     prefix ? el("span", { class: "choice-prefix" }, prefix) : null, shown, el("span", { class: "filter-caret", "aria-hidden": "true" }, "▾"));
   const wrap = el("span", { class: `choice-edit ${className}`.trim() }, btn);
   attachMenu(wrap, btn, {
@@ -411,7 +410,6 @@ export function filterChoice({ items, value, ariaLabel, prefix = "", onChange, c
       if (v === current) return;
       current = v;
       shown.textContent = labelOf(v);
-      btn.setAttribute("aria-label", `${ariaLabel}: ${labelOf(v)}`);
       if (onChange) onChange(v);
     },
   });
@@ -434,4 +432,33 @@ export function viewToggle(current, listHref, monthHref) {
   const link = (v, text, href) => el("a", { class: current === v ? "on" : "", href, "aria-current": current === v ? "true" : null }, text);
   return el("div", { class: "view-toggle", role: "group", "aria-label": "View" },
     link("list", "List", listHref), link("month", "Calendar", monthHref));
+}
+
+/** "Mark replied ▾": asks how she replied, then marks the inquiry replied. */
+export function markRepliedButton(inquiryId, onDone, { small = true } = {}) {
+  const btn = el("button", { class: `btn ${small ? "small" : ""} solid`.trim(), type: "button" }, "Mark replied", el("span", { class: "caret", "aria-hidden": "true" }, "▾"));
+  const wrap = el("span", { class: "choice-edit reply-menu" }, btn);
+  attachMenu(wrap, btn, {
+    items: CHANNELS, ariaLabel: "How did you reply?", current: () => null,
+    onPick: async (channel) => {
+      btn.disabled = true;
+      try {
+        await send(`/inquiries/${inquiryId}/replied`, "POST", { channel });
+        toast("Marked replied");
+        onDone();
+      } catch (ex) { toast(ex.message); btn.disabled = false; }
+    },
+  });
+  return wrap;
+}
+
+/** Delete control at the bottom of a detail page (kept away from Edit so it isn't tapped by mistake). */
+export function dangerZone(text, onClick) {
+  return el("div", { class: "danger-zone" }, el("button", { class: "btn small danger", type: "button", onclick: onClick }, text));
+}
+
+/** Session type label, or "" when the title already says it (avoids "Engagement inquiry · Engagement"). */
+export function typeUnlessInTitle(s) {
+  const t = label(TYPE_LABELS, s.type);
+  return s.title && t && s.title.toLowerCase().includes(t.toLowerCase()) ? "" : t;
 }
