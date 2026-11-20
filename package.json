@@ -3,10 +3,12 @@
   "private": true,
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
+    "deploy": "node scripts/upload-site.mjs sus . --remote --exclude admin --exclude src --exclude migrations --exclude scripts --exclude Photos --exclude package.json --exclude package-lock.json --exclude wrangler.jsonc",
     "db:migrate:local": "wrangler d1 migrations apply collectivebysus-galleries --local",
     "db:migrate": "wrangler d1 migrations apply collectivebysus-galleries --remote",
-    "test:smoke": "DB=collectivebysus-galleries scripts/smoke-test.sh http://localhost:8787"
+    "test:smoke": "DB=collectivebysus-galleries scripts/smoke-test.sh http://localhost:8787",
+    "deploy:dry": "node scripts/upload-site.mjs sus . --remote --dry-run --exclude admin --exclude src --exclude migrations --exclude scripts --exclude Photos --exclude package.json --exclude package-lock.json --exclude wrangler.jsonc",
+    "deploy:old-worker": "wrangler deploy"
   },
   "devDependencies": {
     "wrangler": "^4.159.0"
