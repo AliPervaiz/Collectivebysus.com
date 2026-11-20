@@ -542,7 +542,7 @@ p a:not(.btn), .legal a, .info-block p a { text-decoration: underline; text-unde
   .hero > .container { width: 100%; }
   .hero-image { aspect-ratio: auto; height: min(calc(100svh - var(--nav-h) - 48px), 760px); }
   /* The hero photo is a cutout with empty space above her head; lift it so her figure lines up with the text. */
-  .hero-image img { transform: translateY(-15%); }
+  .hero-image img:not([data-slot-replaced]) { transform: translateY(-15%); }
 
   .about-hero { padding-top: 32px; }
   .about-grid .ph { aspect-ratio: auto; height: min(calc(100svh - var(--nav-h) - 64px), 720px); position: sticky; top: calc(var(--nav-h) + 24px); }
